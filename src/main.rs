@@ -1,14 +1,17 @@
-use binrw::{binrw, BinRead, NullString};
+use binrw::{binrw, BinRead};
 use simple_eyre::eyre::Result;
 
 fn main() -> Result<()> {
     simple_eyre::install()?;
     std::env::args().collect::<Vec<String>>()[1..]
-        .iter().try_for_each(|s| -> Result<()> {
-            let map = MapFile::read_le(&mut std::io::Cursor::new(std::fs::read(s)?))?;
+        .iter()
+        .try_for_each(|s| -> Result<()> {
+            let reader = &mut std::io::Cursor::new(std::fs::read(s)?);
+            let map = MapFile::read_le(reader)?;
             println!("{map:?}");
+            println!("{:?}", reader.position());
             Ok(())
-        })?; 
+        })?;
     Ok(())
 }
 
@@ -16,24 +19,23 @@ fn main() -> Result<()> {
 #[derive(Debug)]
 struct Str {
     #[br(temp)]
-    #[bw(calc = array.len() as u32 + 1)]
+    #[bw(calc = array.len() as u32)]
     len: u32,
-    #[br(assert(array.len() + 1 == len as usize))]
-    array: NullString,
+    #[br(count = len)]
+    array: Vec<u8>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Bool {
-    #[br(map = |x: u32| x != 0)]
-    #[bw(map = |x: &bool| *x as u32)]
-    bool: bool,
+    // #[br(map = |x: u32| x != 0)]
+    // #[bw(map = |x: &bool| *x as u32)]
+    bool: u32,
 }
 
 #[binrw]
 #[derive(Debug)]
-struct ArrayGoodCount
-    {
+struct ArrayGoodCount {
     #[br(temp)]
     #[bw(calc = array.len().try_into().unwrap())]
     len: u32,
@@ -41,11 +43,9 @@ struct ArrayGoodCount
     array: Vec<(u32, i32)>,
 }
 
-
 #[binrw]
 #[derive(Debug)]
-struct ArrayU32
-    {
+struct ArrayU32 {
     #[br(temp)]
     #[bw(calc = array.len().try_into().unwrap())]
     len: u32,
@@ -55,8 +55,7 @@ struct ArrayU32
 
 #[binrw]
 #[derive(Debug)]
-struct ArrayTrigger
-    {
+struct ArrayTrigger {
     #[br(temp)]
     #[bw(calc = array.len().try_into().unwrap())]
     len: u32,
@@ -66,8 +65,17 @@ struct ArrayTrigger
 
 #[binrw]
 #[derive(Debug)]
-struct ArrayPos
-    {
+struct ArrayPatternCursor {
+    #[br(temp)]
+    #[bw(calc = array.len().try_into().unwrap())]
+    len: u32,
+    #[br(count = len)]
+    array: Vec<PatternCursor>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct ArrayPos {
     #[br(temp)]
     #[bw(calc = array.len().try_into().unwrap())]
     len: u32,
@@ -88,12 +96,10 @@ struct Hash {
 struct MapFile {
     logic: Logic,
     map: Map,
-    resources: Resources,
-    doodas: Doodas,
-    ambients: Ambients,
-    gamefilelogic: GameFileLogic,
-    
-
+    // resources: Resources,
+    // doodas: Doodas,
+    // ambients: Ambients,
+    // gamefilelogic: GameFileLogic,
 }
 
 #[binrw]
@@ -110,12 +116,11 @@ struct Logic {
     tick: i32,
 }
 
-
 #[binrw]
 #[derive(Debug)]
 struct MapInfo {
     hash: Hash,
-    idk: ArrayPos,
+    idk: ArrayPatternCursor,
     map_name: Str,
     width: u32,
     height: u32,
@@ -124,6 +129,28 @@ struct MapInfo {
     mission_target_type: u32,
     idk4: u32,
     file_type: u32,
+    id: CoreUuid,
+    //if some bool
+    idk5: Bool,
+    player_names: [Str; 8],
+
+}
+
+#[binrw]
+#[derive(Debug)]
+struct CoreUuid {
+    hash: Hash,
+    init: Bool,
+    id: u128,
+}
+
+
+#[binrw]
+#[derive(Debug)]
+struct PatternCursor {
+    hash: Hash,
+    idk: u32,
+    idk2: u32,
 }
 
 #[binrw]
@@ -163,7 +190,6 @@ struct Pos {
     y: i32,
 }
 
-
 #[binrw]
 #[derive(Debug)]
 struct Map {
@@ -180,7 +206,6 @@ struct Map {
     contient_map: ContinentMap,
 }
 
-
 #[binrw]
 #[derive(Debug)]
 struct ElevationMap {
@@ -189,7 +214,8 @@ struct ElevationMap {
     idk: u32,
     width: u32,
     height: u32,
-    elevations: ArrayU32,
+    #[br(count = width*height)]
+    elevations: Vec<u32>,
 }
 
 #[binrw]
@@ -211,12 +237,13 @@ struct GridStateMap {
 #[binrw]
 #[derive(Debug)]
 struct ResourceMap {
-        hash: Hash,
-        init: Bool,
-        idk: u32,
-        width: u32,
-        height: u32,
-        resources: ArrayGoodCount,
+    hash: Hash,
+    init: Bool,
+    idk: u32,
+    width: u32,
+    height: u32,
+    #[br(count = width*height)]
+    resources: Vec<(u32, i32)>,
 }
 
 #[binrw]
@@ -230,7 +257,6 @@ struct ExplorationMap;
 #[binrw]
 #[derive(Debug)]
 struct ContinentMap;
-
 
 #[binrw]
 #[derive(Debug)]
@@ -260,7 +286,6 @@ struct GameFileLogic {
     stats: Stats,
     game_script: GameScript,
 }
-
 
 #[binrw]
 #[derive(Debug)]
@@ -310,7 +335,6 @@ struct GameScript {
     map_name: Str,
     persistent: MapStringu32,
 }
-
 
 #[binrw]
 #[derive(Debug)]
