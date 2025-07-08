@@ -8,8 +8,9 @@ fn main() -> Result<()> {
         .try_for_each(|s| -> Result<()> {
             let reader = &mut std::io::Cursor::new(std::fs::read(s)?);
             let map = MapFile::read_le(reader)?;
-            println!("{map:?}");
-            println!("{:?}", reader.position());
+            let print = map.resources.respawn;
+            println!("{print:?}");
+            println!("{:?}/{:?}", reader.position(), reader.get_ref().len());
             Ok(())
         })?;
     Ok(())
@@ -26,11 +27,31 @@ struct Str {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct Bool {
     // #[br(map = |x: u32| x != 0)]
     // #[bw(map = |x: &bool| *x as u32)]
     bool: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct ArrayAnimal {
+    #[br(temp)]
+    #[bw(calc = array.len().try_into().unwrap())]
+    len: u32,
+    #[br(count = len)]
+    array: Vec<Animal>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct ArrayDeposit {
+    #[br(temp)]
+    #[bw(calc = array.len().try_into().unwrap())]
+    len: u32,
+    #[br(count = len)]
+    array: Vec<Deposit>,
 }
 
 #[binrw]
@@ -64,13 +85,23 @@ struct ArrayTrigger {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct ArrayPatternCursor {
     #[br(temp)]
     #[bw(calc = array.len().try_into().unwrap())]
     len: u32,
     #[br(count = len)]
     array: Vec<PatternCursor>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct ArrayContinent {
+    #[br(temp)]
+    #[bw(calc = array.len().try_into().unwrap())]
+    len: u32,
+    #[br(count = len)]
+    array:Vec<Continent>,
 }
 
 #[binrw]
@@ -86,8 +117,10 @@ struct ArrayPos {
 #[binrw]
 #[derive(Debug)]
 struct Hash {
+    // #[br(assert(hash_type < 20))]
     hash_type: u32,
     hash: u32,
+    // #[br(assert(len < 25))]
     len: u32,
 }
 
@@ -96,8 +129,8 @@ struct Hash {
 struct MapFile {
     logic: Logic,
     map: Map,
-    // resources: Resources,
-    // doodas: Doodas,
+    resources: Resources,
+    doodads: Doodads,
     // ambients: Ambients,
     // gamefilelogic: GameFileLogic,
 }
@@ -133,7 +166,6 @@ struct MapInfo {
     //if some bool
     idk5: Bool,
     player_names: [Str; 8],
-
 }
 
 #[binrw]
@@ -144,6 +176,13 @@ struct CoreUuid {
     id: u128,
 }
 
+#[binrw]
+#[derive(Debug)]
+struct ElevationCursor {
+    hash: Hash,
+    idk: u32,
+    idk2: u32,
+}
 
 #[binrw]
 #[derive(Debug)]
@@ -239,7 +278,6 @@ struct GridStateMap {
 struct ResourceMap {
     hash: Hash,
     init: Bool,
-    idk: u32,
     width: u32,
     height: u32,
     #[br(count = width*height)]
@@ -248,23 +286,165 @@ struct ResourceMap {
 
 #[binrw]
 #[derive(Debug)]
-struct TerritoryMap;
+struct TerritoryMap {
+    hash: Hash,
+    init: Bool,
+    width: u32,
+    height: u32,
+    #[br(count = width * height)]
+    territories: Vec<u32>,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct ExplorationMap;
+struct ExplorationMap {
+    hash: Hash,
+    init: Bool,
+    width: u32,
+    height: u32,
+    #[br(count = width * height)]
+    territories: [Vec<u32>; 8],
+}
 
 #[binrw]
 #[derive(Debug)]
-struct ContinentMap;
+struct ContinentMap {
+    hash: Hash,
+    init: Bool,
+    width: u32,
+    height: u32,
+    #[br(count = width * height)]
+    continentmap: Vec<u32>,
+    condinentdata: ArrayContinent,
+    idk: u32
+}
 
 #[binrw]
 #[derive(Debug)]
-struct Resources;
+struct Continent {
+    hash: Hash,
+    idk: u32,
+    init: Bool,
+    id: u32,
+    region: (i32, i32, i32, i32),
+    poses: ArrayPatternCursor,
+    somevec: ArrayU32,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct Doodas;
+struct Resources {
+    hash: Hash,
+    init: Bool,
+    deposits: ArrayDeposit,
+    animals: ArrayAnimal,
+    respawn: AnimalRespawn,
+    idk: u32,
+    idk2: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct AnimalRespawn {
+    hash: Hash,
+    init: Bool,
+    tick: u32,
+    inc: u32,
+    pos: UPos,
+}
+
+
+#[binrw]
+#[derive(Debug)]
+struct UPos {
+    x: u32,
+    y: u32,
+}
+
+
+#[binrw]
+#[derive(Debug)]
+struct Deposit {
+    property_id: i32,
+    hash: Hash,
+    id: Uuid,
+    pos: PatternCursor,
+    buildingref: Uuid,
+    pos2: ElevationCursor,
+    current_grouth: f32,
+    age: u32,
+    life_time: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Animal {
+    mapkey: u32,
+    hash: Hash,
+    id: Uuid,
+    idk: f32,
+    patterncursor: PatternCursor,
+    movement: AnimalMovement,
+    idk1: u32,
+    idk2: u32,
+    villagebuildingref: Uuid,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct AnimalMovement {
+    hash: Hash,
+    path: ResourcePath,
+    pattern_cursor: PatternCursor,
+    movement_base: MovementBase,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct ResourcePathBase {
+    hash: Hash,
+    init: Bool,
+    #[brw(if (init.bool == 1))]
+    poses: ArrayPatternCursor,
+    // #[brw(if (init.bool == 1))]
+    // idk: Bool,
+    // #[brw(if (init.bool == 1))]
+    // idk1: i32,
+    // #[brw(if (init.bool == 1))]
+    // idk2: Bool,
+}
+
+
+#[binrw]
+#[derive(Debug)]
+struct ResourcePath {
+    hash: Hash,
+    base: ResourcePathBase,
+}
+
+
+#[binrw]
+#[derive(Debug)]
+struct MovementBase {
+    hash: Hash,
+    pos: PatternCursor,
+    idk: PatternCursor,
+    idk1: PatternCursor,
+    interpolator: MovementInterpolator
+}
+
+#[binrw]
+#[derive(Debug)]
+struct MovementInterpolator {
+    hash: Hash,
+    idk1: f32,
+    idk2: f32,
+    idk3: f32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Doodads;
 
 #[binrw]
 #[derive(Debug)]
@@ -284,7 +464,7 @@ struct GameFileLogic {
     netsys: NetSys,
     ai: Ai,
     stats: Stats,
-    game_script: GameScript,
+    // game_script: GameScript,
 }
 
 #[binrw]
