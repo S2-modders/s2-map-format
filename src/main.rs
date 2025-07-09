@@ -8,7 +8,7 @@ fn main() -> Result<()> {
         .try_for_each(|s| -> Result<()> {
             let reader = &mut std::io::Cursor::new(std::fs::read(s)?);
             let map = MapFile::read_le(reader)?;
-            let print = map.doodads.map3;
+            let print = map.ambients.ambients;
             println!("{print:?}");
             println!("{:?}/{:?}", reader.position(), reader.get_ref().len());
             Ok(())
@@ -32,6 +32,16 @@ struct Bool {
     // #[br(map = |x: u32| x != 0)]
     // #[bw(map = |x: &bool| *x as u32)]
     bool: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct ArrayAmbient {
+    #[br(temp)]
+    #[bw(calc = array.len().try_into().unwrap())]
+    len: u32,
+    #[br(count = len)]
+    array: Vec<Ambient>,
 }
 
 #[binrw]
@@ -141,7 +151,7 @@ struct MapFile {
     map: Map,
     resources: Resources,
     doodads: Doodads,
-    // ambients: Ambients,
+    ambients: Ambients,
     // gamefilelogic: GameFileLogic,
 }
 
@@ -198,8 +208,8 @@ struct ElevationCursor {
 #[derive(Debug)]
 struct PatternCursor {
     hash: Hash,
-    idk: u32,
-    idk2: u32,
+    x: u32,
+    y: u32,
 }
 
 #[binrw]
@@ -493,7 +503,18 @@ fn has_lifetime(type_id: u32) -> bool {
 
 #[binrw]
 #[derive(Debug)]
-struct Ambients;
+struct Ambients {
+    hash: Hash,
+    init: Bool,
+    ambients: ArrayAmbient,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Ambient {
+    idk: u32,
+    pos: PatternCursor,
+}
 
 #[binrw]
 #[derive(Debug)]
