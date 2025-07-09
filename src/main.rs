@@ -8,7 +8,7 @@ fn main() -> Result<()> {
         .try_for_each(|s| -> Result<()> {
             let reader = &mut std::io::Cursor::new(std::fs::read(s)?);
             let map = MapFile::read_le(reader)?;
-            let print = map.resources.respawn;
+            let print = map.doodads.map3;
             println!("{print:?}");
             println!("{:?}/{:?}", reader.position(), reader.get_ref().len());
             Ok(())
@@ -32,6 +32,16 @@ struct Bool {
     // #[br(map = |x: u32| x != 0)]
     // #[bw(map = |x: &bool| *x as u32)]
     bool: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct ArrayDoodad {
+    #[br(temp)]
+    #[bw(calc = array.len().try_into().unwrap())]
+    len: u32,
+    #[br(count = len)]
+    array: Vec<Doodad>,
 }
 
 #[binrw]
@@ -101,7 +111,7 @@ struct ArrayContinent {
     #[bw(calc = array.len().try_into().unwrap())]
     len: u32,
     #[br(count = len)]
-    array:Vec<Continent>,
+    array: Vec<Continent>,
 }
 
 #[binrw]
@@ -316,7 +326,7 @@ struct ContinentMap {
     #[br(count = width * height)]
     continentmap: Vec<u32>,
     condinentdata: ArrayContinent,
-    idk: u32
+    idk: u32,
 }
 
 #[binrw]
@@ -353,14 +363,12 @@ struct AnimalRespawn {
     pos: UPos,
 }
 
-
 #[binrw]
 #[derive(Debug)]
 struct UPos {
     x: u32,
     y: u32,
 }
-
 
 #[binrw]
 #[derive(Debug)]
@@ -414,14 +422,12 @@ struct ResourcePathBase {
     // idk2: Bool,
 }
 
-
 #[binrw]
 #[derive(Debug)]
 struct ResourcePath {
     hash: Hash,
     base: ResourcePathBase,
 }
-
 
 #[binrw]
 #[derive(Debug)]
@@ -430,7 +436,7 @@ struct MovementBase {
     pos: PatternCursor,
     idk: PatternCursor,
     idk1: PatternCursor,
-    interpolator: MovementInterpolator
+    interpolator: MovementInterpolator,
 }
 
 #[binrw]
@@ -444,7 +450,46 @@ struct MovementInterpolator {
 
 #[binrw]
 #[derive(Debug)]
-struct Doodads;
+struct Doodads {
+    hash: Hash,
+    init: Bool,
+    map1: ArrayDoodad,
+    map2: ArrayDoodad,
+    map3: ArrayDoodad,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Doodad {
+    type_id: u32,
+    hash: Hash,
+    id: Uuid,
+    pos: ElevationCursor,
+    #[br(if(has_lifetime(type_id)))]
+    #[bw(if(has_lifetime(*type_id)))]
+    lifetime: u32,
+}
+
+fn has_lifetime(type_id: u32) -> bool {
+    //aka is sign
+    matches!(
+        type_id,
+        0x28f42343
+            | 0x121aa343
+            | 0x90eeb793
+            | 0xc5096143
+            | 0x00ad6ff3
+            | 0x45dbe563
+            | 0xd33a52e3
+            | 0x4b82f123
+            | 0x96771ad3
+            | 0xe06ac3a3
+            | 0xe812d123
+            | 0x3124a193
+            | 0xaecf0d53
+            | 0x17684773
+    )
+}
 
 #[binrw]
 #[derive(Debug)]
