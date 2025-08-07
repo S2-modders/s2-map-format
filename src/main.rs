@@ -1,8 +1,8 @@
-use std::fmt;
-
-use binrw::{binrw, BinRead, BinWrite};
+use binrw::{binrw, BinRead};
 use decryptor_s2::*;
 use simple_eyre::eyre::Result;
+mod helper_structs;
+use helper_structs::*;
 
 fn main() -> Result<()> {
     simple_eyre::install()?;
@@ -37,135 +37,6 @@ fn main() -> Result<()> {
 }
 
 #[binrw]
-#[derive(Default)]
-struct Str {
-    #[br(temp)]
-    #[bw(calc = str.len() as u32)]
-    len: u32,
-    #[br(count = len)]
-    #[br(try_map = String::from_utf8)]
-    #[bw(map = String::as_bytes)]
-    str: String,
-}
-
-impl fmt::Debug for Str {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.str.fmt(f)
-    }
-}
-
-#[binrw]
-#[derive(Default)]
-struct Bool {
-    #[br(try_map = |x: u32| (x < 2).then_some(x != 0).ok_or("expected bool"))]
-    #[bw(map = |x| *x as u32)]
-    bool: bool,
-}
-
-impl fmt::Debug for Bool {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.bool.fmt(f)
-    }
-}
-
-#[binrw]
-#[derive(Debug, Default)]
-struct Array<T>
-where
-    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
-{
-    #[br(temp)]
-    #[bw(calc = array.len().try_into().unwrap())]
-    len: u32,
-    #[br(count = len)]
-    array: Vec<T>,
-}
-
-#[binrw]
-struct Uuid {
-    #[brw(args("logic UniqueId"))]
-    #[br(assert(version.version == 0))]
-    version: Version,
-    id: i64,
-}
-
-impl fmt::Debug for Uuid {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.id.fmt(f)
-    }
-}
-
-
-#[binrw]
-#[derive(Default)]
-#[brw(import(name:&str))]
-struct Version {
-    version: u32,
-    #[br(assert(hash == crc32fast::hash(name.as_bytes())))]
-    #[bw(calc = crc32fast::hash(name.as_bytes()))]
-    hash: u32,
-    #[br(assert(len as usize == name.len()))]
-    #[bw(calc = name.len() as u32)]
-    len: u32,
-}
-
-impl fmt::Debug for Version {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.version.fmt(f)
-    }
-}
-
-#[binrw]
-struct CoreUuid {
-    #[brw(args("Core UUID"))]
-    #[brw(assert(version.version == 0))]
-    version: Version,
-    init: Bool,
-    id: u128,
-}
-
-impl fmt::Debug for CoreUuid {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.id.fmt(f)
-    }
-}
-
-
-#[binrw]
-struct ElevationCursor {
-    #[brw(args("ElevationCursor"))]
-    #[brw(assert(version.version == 0))]
-    version: Version,
-    x: u32,
-    y: u32,
-}
-
-impl fmt::Debug for ElevationCursor {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        (self.x, self.y).fmt(f)
-    }
-}
-
-
-#[binrw]
-#[derive(Default)]
-struct PatternCursor {
-    #[brw(args("PatternCursor"))]
-    #[brw(assert(version.version == 0))]
-    version: Version,
-    x: u32,
-    y: u32,
-}
-
-impl fmt::Debug for PatternCursor {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        (self.x, self.y).fmt(f)
-    }
-}
-
-
-
-#[binrw]
 #[derive(Debug)]
 struct MapFile {
     logic: Logic,
@@ -174,7 +45,7 @@ struct MapFile {
     doodads: Doodads,
     ambients: Ambients,
     #[brw(if(logic.mapinfo.file_type == 0x14))]
-    gamefilelogic: GameFileLogic,
+    gamefilelogic: Option<GameFileLogic>,
 }
 
 #[binrw]
@@ -183,7 +54,7 @@ struct Logic {
     mapinfo: MapInfo,
     #[brw(args("LogicSystem"))]
     version: Version,
-    max_id: u64,
+    max_id: i64,
     initialized: Bool,
     seconds_per_tick: f32,
     ticked_seconds: f32,
@@ -231,13 +102,46 @@ struct Trigger {
     version: Version,
     init: Bool,
     uuid: Uuid,
-    trigger_type: u32,
+    trigger_type: TriggerType,
     pos: PatternCursor,
     idk: u32,
     active: Bool,
     name: Str,
     player_id: u32,
     time: f32,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[derive(Debug)]
+enum TriggerType {
+    Type1 = 1,
+    Type2 = 2,
+    Win = 3,
+}
+
+impl Trigger {
+    pub fn new(
+        logic: &mut Logic,
+        trigger_type: TriggerType,
+        pos: (u32, u32),
+        idk: u32,
+        name: &str,
+        player_id: u32,
+    ) -> Trigger {
+        Trigger {
+            version: 1.into(),
+            init: true.into(),
+            uuid: Uuid::new(logic),
+            active: true.into(),
+            time: 0.0,
+            trigger_type,
+            pos: pos.into(),
+            idk,
+            name: name.into(),
+            player_id,
+        }
+    }
 }
 
 #[binrw]
@@ -372,7 +276,7 @@ struct AnimalRespawn {
     init: Bool,
     tick: u32,
     inc: u32,
-    pos: UPos,
+    pos: UPos,//TODO
 }
 
 #[binrw]
@@ -422,7 +326,7 @@ struct AnimalMovement {
 }
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct ResourcePathBase {
     #[brw(args("Movement Path Base"))]
     version: Version,
@@ -491,7 +395,7 @@ struct Doodad {
 }
 
 fn has_lifetime(type_id: u32) -> bool {
-    //aka is sign
+    //aka is_sign
     matches!(
         type_id,
         0x28f42343
@@ -528,7 +432,7 @@ struct Ambient {
 }
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct GameFileLogic {
     #[brw(args("Game File Logic"))]
     version: Version,
@@ -546,43 +450,43 @@ struct GameFileLogic {
 }
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Random;
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Players;
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Villages;
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Settlers;
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct TransportSys;
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Military;
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Navy;
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct NetSys;
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Ai;
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Stats;
 
 #[binrw]
