@@ -1,5 +1,6 @@
-use binrw::{binrw, BinRead, BinWrite};
+use binrw::{BinRead, BinWrite, binrw};
 use std::fmt;
+use strum::*;
 
 use crate::Logic;
 
@@ -60,6 +61,20 @@ where
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.array.fmt(f)
     }
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[derive(Debug, EnumCount)]
+pub enum PlayerId {
+    P0 = 0,
+    P1 = 1,
+    P2 = 2,
+    P3 = 3,
+    P4 = 4,
+    P5 = 5,
+    P6 = 6,
+    P7 = 7, //Not used ingame
 }
 
 #[binrw]

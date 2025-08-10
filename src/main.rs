@@ -1,6 +1,7 @@
-use binrw::{binrw, BinRead};
+use binrw::{BinRead, binrw};
 use decryptor_s2::*;
 use simple_eyre::eyre::Result;
+use strum::*;
 mod helper_structs;
 use helper_structs::*;
 
@@ -30,6 +31,7 @@ fn main() -> Result<()> {
             // .write_args(&mut BufWriter::new(&mut File::open(s)?), (s,))?;
             let remaining = &reader.get_ref()[reader.position() as usize..];
             println!("remaining: {}", remaining.len());
+            println!("type: {}", map.logic.mapinfo.file_type);
             println!("{:?}/{:?}", reader.position(), reader.get_ref().len());
             Ok(())
         })?;
@@ -67,23 +69,43 @@ struct Logic {
 #[derive(Debug)]
 struct MapInfo {
     #[brw(args("MapInfo"))]
+    #[br(dbg)]
     version: Version,
     idk: Array<PatternCursor>,
     map_name: Str,
+    #[brw(if(version.version > 1))]
     width: u32,
+    #[brw(if(version.version > 1))]
     height: u32,
-    idk2: [u32; 8],
-    idk3: [(u32, u32, u32, u32); 8],
-    mission_target_type: u32,
+    idk2: [u32; PlayerId::COUNT],
+    #[brw(if(version.version > 2 && version.version < 6))]
+    idk3: [(u32, u32, u32); PlayerId::COUNT],
+    #[brw(if(version.version > 5))]
+    idk3_2: [(u32, u32, u32, u32); PlayerId::COUNT],
+    #[brw(if(version.version > 0))]
+    mission_target_type: Option<u32>,
+    #[brw(if(version.version > 3))]
     idk4: u32,
+    #[brw(if(version.version > 4))]
     file_type: u32,
-    id: CoreUuid,
+    #[brw(if(version.version > 6))]
+    id: Option<CoreUuid>,
     #[brw(if(version.version > 7))]
-    idk5: Bool,
+    idk5: Option<Bool>,
     #[brw(if(version.version > 7))]
-    player_names: [Str; 8],
+    player_names: Option<[Str; PlayerId::COUNT]>,
     #[brw(if(version.version > 8))]
-    idk6: u32,
+    idk6: Option<u32>,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[derive(Debug)]
+enum MissionTarget {
+    DestroyAllEnemies = 1,
+    ConquerTheMap = 2,
+    ProduceCoins = 3,
+    ReachThePortal = 4,
 }
 
 #[binrw]
@@ -107,7 +129,7 @@ struct Trigger {
     idk: u32,
     active: Bool,
     name: Str,
-    player_id: u32,
+    player_id: PlayerId,
     time: f32,
 }
 
@@ -127,7 +149,7 @@ impl Trigger {
         pos: (u32, u32),
         idk: u32,
         name: &str,
-        player_id: u32,
+        player_id: PlayerId,
     ) -> Trigger {
         Trigger {
             version: 1.into(),
@@ -225,7 +247,7 @@ struct ExplorationMap {
     width: u32,
     height: u32,
     #[br(count = width * height)]
-    territories: [Vec<u32>; 8],
+    territories: [Vec<u32>; PlayerId::COUNT],
 }
 
 #[binrw]
@@ -276,7 +298,7 @@ struct AnimalRespawn {
     init: Bool,
     tick: u32,
     inc: u32,
-    pos: UPos,//TODO
+    pos: UPos, //TODO
 }
 
 #[binrw]
@@ -495,9 +517,5 @@ struct GameScript {
     version: Version,
     idk: Bool,
     map_name: Str,
-    persistent: MapStringu32,
+    persistent: Array<(Str, u32)>,
 }
-
-#[binrw]
-#[derive(Debug, Default)]
-struct MapStringu32;
