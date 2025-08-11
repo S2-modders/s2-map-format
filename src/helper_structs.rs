@@ -108,6 +108,10 @@ pub struct Good(u32); //TODO
 
 #[binrw]
 #[derive(Default, Debug)]
+pub struct RemainsType(u32); //TODO
+
+#[binrw]
+#[derive(Default, Debug)]
 pub struct BuildingType(u32); //TODO
 
 #[binrw]

@@ -1,6 +1,5 @@
 use crate::helper_structs::*;
 use binrw::binrw;
-use strum::*;
 
 #[binrw]
 #[derive(Debug)]
