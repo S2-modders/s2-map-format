@@ -166,7 +166,7 @@ struct MsgId {
 
 #[binrw]
 #[derive(Debug)]
-struct Stock {
+pub struct Stock {
     #[brw(args(0, "Stock"))]
     version: Version,
     init: Bool,

@@ -42,7 +42,6 @@ impl fmt::Debug for Bool {
 }
 
 #[binrw]
-#[derive(Default)]
 pub struct Array<T>
 where
     for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
@@ -52,6 +51,17 @@ where
     len: u32,
     #[br(count = len)]
     pub array: Vec<T>,
+}
+
+impl<T> Default for Array<T>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
+{
+    fn default() -> Self {
+        Self {
+            array: Default::default(),
+        }
+    }
 }
 
 impl<T> fmt::Debug for Array<T>
@@ -112,7 +122,7 @@ pub struct RemainsType(u32); //TODO
 
 #[binrw]
 #[derive(Default, Debug)]
-pub struct BuildingType(u32); //TODO
+pub struct BuildingType(pub u32); //TODO
 
 #[binrw]
 #[derive(Default, derive_more::From, derive_more::Into)]
