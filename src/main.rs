@@ -530,7 +530,7 @@ struct OptionalPlayer {
 #[binrw]
 #[derive(Debug)]
 struct Player {
-    #[brw(args(4, "PlayerObject"))]
+    #[brw(args(5, "PlayerObject"))]
     version: Version,
     init: Bool,
     name: Str,
@@ -549,8 +549,10 @@ struct Player {
     ship_names: Option<ShipNames>,
     #[brw(if(version.version > 1))]
     idk4: u32,
-    #[brw(if(version.version > 2))]
-    seen: Option<[(Bool, Bool); PlayerId::COUNT]>, //Seen by and Seen
+    #[brw(if(version.version > 2 && version.version < 5))]
+    seen_old: Option<[u32; PlayerId::COUNT]>, //Seen by
+    #[brw(if(version.version > 4))]
+    seen: Option<[(u32, u32); PlayerId::COUNT]>, //Seen by and Seen
     #[brw(if(version.version > 3))]
     stock2: Option<Stock>,
 }
@@ -622,11 +624,52 @@ struct ArrangementObject {
 
 #[binrw]
 #[derive(Debug)]
-struct PlayerMilitary;
+struct PlayerMilitary {
+    #[brw(args(0, "Player Military"))]
+    version: Version,
+    idk0: f32,
+    idk1: f32,
+    idk2: f32,
+    catapultscorediv: f32,
+    attackstrengh: f32,
+    is_attacker_save: Bool,
+    intercepting_factor: f32,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct Messages;
+struct Messages {
+    #[brw(args(0, "Messages"))]
+    version: Version,
+    messages: Array<Message>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Message {
+    #[brw(args(2, "Message"))]
+    version: Version,
+    idk: f32,
+    pos: PatternCursor,
+    msg: Str,
+    desc: Str,
+    msg_type: u32,
+    idk2: u32,
+    #[brw(if(version.version < 2))]
+    id_old: Option<Uuid>,
+    #[brw(if(version.version > 1))]
+    id: Option<MsgId>,
+    #[brw(if(version.version > 0))]
+    more_info: Str,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct MsgId {
+    #[brw(args(0, "uniqueId"))]
+    version: Version,
+    id: u64,
+}
 
 #[binrw]
 #[derive(Debug)]
@@ -640,7 +683,11 @@ struct Stock {
 
 #[binrw]
 #[derive(Debug)]
-struct ShipNames;
+struct ShipNames {
+    #[brw(args(0, "Player ShipNames"))]
+    version: Version,
+    ships: u32,
+}
 
 #[binrw]
 #[derive(Debug)]
