@@ -80,8 +80,8 @@ pub enum PlayerId {
 #[binrw]
 #[derive(Default)]
 pub struct Uuid {
-    #[brw(args("logic UniqueId"))]
-    version: Version0,
+    #[brw(args(0, "logic UniqueId"))]
+    version: Version,
     id: i64,
 }
 
@@ -103,22 +103,19 @@ impl Uuid {
 }
 
 #[binrw]
-#[derive(Default)]
-#[brw(import(name:&str))]
-pub struct Version0 {
-    #[brw(magic = 0u32)]
-    #[br(assert(hash == crc32fast::hash(name.as_bytes())))]
-    #[bw(calc = crc32fast::hash(name.as_bytes()))]
-    hash: u32,
-    #[br(assert(len as usize == name.len()))]
-    #[bw(calc = name.len() as u32)]
-    len: u32,
-}
+#[derive(Default, Debug)]
+pub struct Good(u32); //TODO
+
+#[binrw]
+#[derive(Default, Debug)]
+pub struct BuildingType(u32); //TODO
 
 #[binrw]
 #[derive(Default, derive_more::From, derive_more::Into)]
-#[brw(import(name:&str))]
+#[brw(import(max_version: u32, name:&str))]
 pub struct Version {
+    #[br(assert(version <= max_version))]
+    #[bw(assert(*version <= max_version))]
     pub version: u32,
     #[br(assert(hash == crc32fast::hash(name.as_bytes())))]
     #[bw(calc = crc32fast::hash(name.as_bytes()))]
@@ -136,8 +133,8 @@ impl fmt::Debug for Version {
 
 #[binrw]
 pub struct CoreUuid {
-    #[brw(args("Core UUID"))]
-    version: Version0,
+    #[brw(args(0, "Core UUID"))]
+    version: Version,
     init: Bool,
     id: u128,
 }
@@ -150,8 +147,8 @@ impl fmt::Debug for CoreUuid {
 
 #[binrw]
 pub struct ElevationCursor {
-    #[brw(args("ElevationCursor"))]
-    version: Version0,
+    #[brw(args(0, "ElevationCursor"))]
+    version: Version,
     pub x: u32,
     pub y: u32,
 }
@@ -165,8 +162,8 @@ impl fmt::Debug for ElevationCursor {
 #[binrw]
 #[derive(Default)]
 pub struct PatternCursor {
-    #[brw(args("PatternCursor"))]
-    version: Version0,
+    #[brw(args(0, "PatternCursor"))]
+    version: Version,
     pub x: u32,
     pub y: u32,
 }

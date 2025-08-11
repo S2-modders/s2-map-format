@@ -20,7 +20,7 @@ fn main() -> Result<()> {
             let map = MapFile::read_le(reader)?;
             // let print = &map.logic.mapinfo;
             // println!("{print:?}");
-            let print = &map.logic.trigger_sys.triggers;
+            let print = &map.logic.trigger_sys.unwrap().triggers;
             println!("{print:?}");
             // let mut writer = std::io::Cursor::new(Vec::new());
             // map.write_le(&mut writer)?;
@@ -33,6 +33,7 @@ fn main() -> Result<()> {
             println!("remaining: {}", remaining.len());
             println!("type: {}", map.logic.mapinfo.file_type);
             println!("{:?}/{:?}", reader.position(), reader.get_ref().len());
+            println!("remaining bytes (50): {:?}", &remaining[..50]);
             Ok(())
         })?;
     Ok(())
@@ -46,7 +47,7 @@ struct MapFile {
     resources: Resources,
     doodads: Doodads,
     ambients: Ambients,
-    #[brw(if(logic.mapinfo.file_type == 0x14))]
+    #[brw(if(logic.mapinfo.file_type == 20 || logic.mapinfo.file_type == 1))]
     gamefilelogic: Option<GameFileLogic>,
 }
 
@@ -54,22 +55,28 @@ struct MapFile {
 #[derive(Debug)]
 struct Logic {
     mapinfo: MapInfo,
-    #[brw(args("LogicSystem"))]
+    #[brw(args(7, "LogicSystem"))]
     version: Version,
     max_id: i64,
     initialized: Bool,
+    #[brw(if(version.version> 0 && version.version < 6))]
+    unused: u32,
+    #[brw(if(version.version > 3))]
     seconds_per_tick: f32,
+    #[brw(if(version.version > 3))]
     ticked_seconds: f32,
+    #[brw(if(version.version > 3))]
     seconds_passed: f32,
-    trigger_sys: TriggerSys,
+    #[brw(if(version.version > 4))]
+    trigger_sys: Option<TriggerSys>,
+    #[brw(if(version.version > 6))]
     tick: i32,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct MapInfo {
-    #[brw(args("MapInfo"))]
-    #[br(dbg)]
+    #[brw(args(9, "MapInfo"))]
     version: Version,
     idk: Array<PatternCursor>,
     map_name: Str,
@@ -111,7 +118,7 @@ enum MissionTarget {
 #[binrw]
 #[derive(Debug)]
 struct TriggerSys {
-    #[brw(args("TriggerSystem"))]
+    #[brw(args(0, "TriggerSystem"))]
     version: Version,
     init: Bool,
     triggers: Array<Trigger>,
@@ -120,7 +127,7 @@ struct TriggerSys {
 #[binrw]
 #[derive(Debug)]
 struct Trigger {
-    #[brw(args("TriggerObject"))]
+    #[brw(args(1, "TriggerObject"))]
     version: Version,
     init: Bool,
     uuid: Uuid,
@@ -130,6 +137,7 @@ struct Trigger {
     active: Bool,
     name: Str,
     player_id: PlayerId,
+    #[brw(if(version.version > 0))]
     time: f32,
 }
 
@@ -169,7 +177,7 @@ impl Trigger {
 #[binrw]
 #[derive(Debug)]
 struct Map {
-    #[brw(args("MapSystem"))]
+    #[brw(args(0, "MapSystem"))]
     version: Version,
     init: Bool,
     width: u32,
@@ -186,20 +194,25 @@ struct Map {
 #[binrw]
 #[derive(Debug)]
 struct ElevationMap {
-    #[brw(args("ElevationMap"))]
+    #[brw(args(1, "ElevationMap"))]
     version: Version,
     init: Bool,
     idk: u32,
+    #[brw(if(version.version > 0))]
     width: u32,
+    #[brw(if(version.version > 0))]
     height: u32,
     #[br(count = width*height)]
+    #[brw(if(version.version > 0))]
     elevations: Vec<u32>,
+    #[brw(if(version.version == 0))]
+    elevations_old: Array<u32>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct PatternMap {
-    #[brw(args("PatternMap"))]
+    #[brw(args(0, "PatternMap"))]
     version: Version,
     init: Bool,
     patterns: Array<u32>,
@@ -208,7 +221,7 @@ struct PatternMap {
 #[binrw]
 #[derive(Debug)]
 struct GridStatesMap {
-    #[brw(args("GridStatesMap"))]
+    #[brw(args(0, "GridStatesMap"))]
     version: Version,
     init: Bool,
     gridstates: Array<u32>,
@@ -217,7 +230,7 @@ struct GridStatesMap {
 #[binrw]
 #[derive(Debug)]
 struct ResourceMap {
-    #[brw(args("Map Resources"))]
+    #[brw(args(0, "Map Resources"))]
     version: Version,
     init: Bool,
     width: u32,
@@ -229,7 +242,7 @@ struct ResourceMap {
 #[binrw]
 #[derive(Debug)]
 struct TerritoryMap {
-    #[brw(args("Map Territory"))]
+    #[brw(args(0, "Map Territory"))]
     version: Version,
     init: Bool,
     width: u32,
@@ -241,7 +254,7 @@ struct TerritoryMap {
 #[binrw]
 #[derive(Debug)]
 struct ExplorationMap {
-    #[brw(args("Map Exploration"))]
+    #[brw(args(0, "Map Exploration"))]
     version: Version,
     init: Bool,
     width: u32,
@@ -253,7 +266,7 @@ struct ExplorationMap {
 #[binrw]
 #[derive(Debug)]
 struct ContinentMap {
-    #[brw(args("Map Continents"))]
+    #[brw(args(1, "Map Continents"))]
     version: Version,
     init: Bool,
     width: u32,
@@ -261,39 +274,48 @@ struct ContinentMap {
     #[br(count = width * height)]
     continentmap: Vec<u32>,
     condinentdata: Array<Continent>,
+    #[brw(if(version.version > 0))]
     idk: u32,
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct Continent {
-    #[brw(args("Map Continent"))]
+    #[brw(args(3, "Map Continent"))]
     version: Version,
     idk: u32,
     init: Bool,
     id: u32,
-    region: (i32, i32, i32, i32),
+    #[brw(if(version.version > 0))]
+    region: Option<(i32, i32, i32, i32)>,
+    #[brw(if(version.version > 1))]
     poses: Array<PatternCursor>,
+    #[brw(if(version.version > 2))]
     somevec: Array<u32>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Resources {
-    #[brw(args("resources"))]
+    #[brw(args(4, "resources"))]
     version: Version,
     init: Bool,
     deposits: Array<(u32, Deposit)>,
+
+    #[brw(if(version.version > 0))]
     animals: Array<Animal>,
-    respawn: AnimalRespawn,
+    #[brw(if(version.version > 2))]
+    respawn: Option<AnimalRespawn>,
+    #[brw(if(version.version > 3))]
     idk: u32,
+    #[brw(if(version.version > 3))]
     idk2: u32,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct AnimalRespawn {
-    #[brw(args("Resources AnimalRespawn"))]
+    #[brw(args(0, "Resources AnimalRespawn"))]
     version: Version,
     init: Bool,
     tick: u32,
@@ -311,70 +333,75 @@ struct UPos {
 #[binrw]
 #[derive(Debug)]
 struct Deposit {
-    #[brw(args("deposit"))]
+    #[brw(args(1, "deposit"))]
     version: Version,
     id: Uuid,
     pos: PatternCursor,
     buildingref: Uuid,
     pos2: ElevationCursor,
     current_grouth: f32,
+    #[brw(if(version.version > 0))]
     age: u32,
+    #[brw(if(version.version > 0))]
     life_time: u32,
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct Animal {
     mapkey: u32,
-    #[brw(args("Resources Animal"))]
+    #[brw(args(2, "Resources Animal"))]
     version: Version,
     id: Uuid,
     idk: f32,
-    patterncursor: PatternCursor,
+    pos: PatternCursor,
     movement: AnimalMovement,
     idk1: u32,
+    #[brw(if(version.version > 0))]
     idk2: u32,
+    #[brw(if(version.version > 1))]
     villagebuildingref: Uuid,
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct AnimalMovement {
-    #[brw(args("Navy Movement"))]
+    #[brw(args(1, "Navy Movement"))]
     version: Version,
     path: ResourcePath,
-    pattern_cursor: PatternCursor,
+    #[brw(if(version.version > 0))]
+    pos: Option<PatternCursor>, //Get this instead in movementBase.pos if None
     movement_base: MovementBase,
 }
 
 #[binrw]
-#[derive(Debug)]
-struct ResourcePathBase {
-    #[brw(args("Movement Path Base"))]
+#[derive(Debug, Default)]
+struct MovementPathBase {
+    #[brw(args(1, "Movement Path Base"))]
     version: Version,
     init: Bool,
-    #[brw(if (init.bool))]
+    #[brw(if (init.bool || version.version == 0))]
     poses: Array<PatternCursor>,
-    #[brw(if (init.bool))]
+    #[brw(if (init.bool || version.version == 0))]
     idk: Bool,
-    #[brw(if (init.bool))]
+    #[brw(if (init.bool || version.version == 0))]
     idk1: i32,
-    #[brw(if (init.bool))]
+    #[brw(if (init.bool || version.version == 0))]
     idk2: Bool,
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct ResourcePath {
-    #[brw(args("Resources Path"))]
+    #[brw(args(0, "Resources Path"))]
     version: Version,
-    base: ResourcePathBase,
+    base: MovementPathBase,
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct MovementBase {
-    #[brw(args("Movement Base"))]
+    #[brw(args(0, "Movement Base"))]
     version: Version,
     pos: PatternCursor,
     idk: PatternCursor,
@@ -383,9 +410,9 @@ struct MovementBase {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct MovementInterpolator {
-    #[brw(args("Movement Interpolator"))]
+    #[brw(args(0, "Movement Interpolator"))]
     version: Version,
     idk1: f32,
     idk2: f32,
@@ -395,7 +422,7 @@ struct MovementInterpolator {
 #[binrw]
 #[derive(Debug)]
 struct Doodads {
-    #[brw(args("DoodadsSystem"))]
+    #[brw(args(0, "DoodadsSystem"))]
     version: Version,
     init: Bool,
     map1: Array<Doodad>,
@@ -407,13 +434,13 @@ struct Doodads {
 #[derive(Debug)]
 struct Doodad {
     type_id: u32,
-    #[brw(args("DoodadsObject"))]
+    #[brw(args(1, "DoodadsObject"))] //TODO: why 1 and not 0?
     version: Version,
     id: Uuid,
     pos: ElevationCursor,
     #[br(if(has_lifetime(type_id)))]
     #[bw(if(has_lifetime(*type_id)))]
-    lifetime: u32,
+    lifetime: Option<u32>,
 }
 
 fn has_lifetime(type_id: u32) -> bool {
@@ -440,7 +467,7 @@ fn has_lifetime(type_id: u32) -> bool {
 #[binrw]
 #[derive(Debug)]
 struct Ambients {
-    #[brw(args("Logic Ambients"))]
+    #[brw(args(0, "Logic Ambients"))]
     version: Version,
     init: Bool,
     ambients: Array<Ambient>,
@@ -456,9 +483,10 @@ struct Ambient {
 #[binrw]
 #[derive(Debug)]
 struct GameFileLogic {
-    #[brw(args("Game File Logic"))]
+    #[brw(args(2, "Game File Logic"))]
     version: Version,
-    random: Random,
+    #[brw(if(version.version > 0))]
+    random: Option<Random>,
     players: Players,
     villages: Villages,
     settlers: Settlers,
@@ -468,16 +496,151 @@ struct GameFileLogic {
     netsys: NetSys,
     ai: Ai,
     stats: Stats,
-    game_script: GameScript,
+    #[brw(if(version.version > 1))]
+    game_script: Option<GameScript>,
 }
 
 #[binrw]
 #[derive(Debug)]
-struct Random;
+struct Random {
+    #[brw(args(0, "Logic Random"))]
+    version: Version,
+    init: Bool,
+    state: u64,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct Players;
+struct Players {
+    #[brw(args(0, "PlayerSystem"))]
+    version: Version,
+    init: Bool,
+    players: [OptionalPlayer; PlayerId::COUNT],
+}
+
+#[binrw]
+#[derive(Debug)]
+struct OptionalPlayer {
+    tmp: i32,
+    #[br(if(tmp != -1))]
+    #[bw(if(*tmp != -1))]
+    player: Option<Player>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Player {
+    #[brw(args(4, "PlayerObject"))]
+    version: Version,
+    init: Bool,
+    name: Str,
+    id: PlayerId,
+    idk: u32,
+    idk2: u32,
+    tribe: u32,
+    locksmith: LockSmith,
+    good_priority: GoodPriorities,
+    good_arrangement: GoodArrangement,
+    military: PlayerMilitary,
+    messages: Messages,
+    stock: Stock,
+    counter: u32,
+    #[brw(if(version.version > 0))]
+    ship_names: Option<ShipNames>,
+    #[brw(if(version.version > 1))]
+    idk4: u32,
+    #[brw(if(version.version > 2))]
+    seen: Option<[(Bool, Bool); PlayerId::COUNT]>, //Seen by and Seen
+    #[brw(if(version.version > 3))]
+    stock2: Option<Stock>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct LockSmith {
+    #[brw(args(1, "PlayerLocksmith"))]
+    version: Version,
+    settings: [(f32, f32); 12],
+    #[brw(if(version.version > 0))]
+    idk: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct GoodPriorities {
+    #[brw(args(0, "Good Priorities"))]
+    version: Version,
+    init: Bool,
+    settings: Array<GoodPriority>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct GoodPriority {
+    #[brw(args(0, "Good Priority"))]
+    version: Version,
+    idk: u32,
+    idk2: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct GoodArrangement {
+    #[brw(args(0, "Good Arrangement"))]
+    version: Version,
+    init: Bool,
+    arrangementgroups: Array<GoodArrangementGroup>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct GoodArrangementGroup {
+    #[brw(args(0, "Player GoodArrangementGroup"))]
+    version: Version,
+    init: Bool,
+    base_arrangement: ArrangementBase,
+    good: Good,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct ArrangementBase {
+    #[brw(args(0, "Player ArrangementBase"))]
+    version: Version,
+    arrangements: Array<ArrangementObject>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct ArrangementObject {
+    #[brw(args(0, "Player ArrangementObject"))]
+    version: Version,
+    percentage: f32,
+    idk: f32,
+    obj_type: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct PlayerMilitary;
+
+#[binrw]
+#[derive(Debug)]
+struct Messages;
+
+#[binrw]
+#[derive(Debug)]
+struct Stock {
+    #[brw(args(0, "Stock"))]
+    version: Version,
+    init: Bool,
+    idk: u32,
+    map: Array<(Good, BuildingType)>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct ShipNames;
 
 #[binrw]
 #[derive(Debug)]
@@ -512,7 +675,7 @@ struct Ai;
 struct Stats;
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct GameScript {
     version: Version,
     idk: Bool,
