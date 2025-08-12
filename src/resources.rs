@@ -1,4 +1,5 @@
 use crate::helper_structs::*;
+use crate::movement::AnimalMovement;
 use binrw::binrw;
 
 #[binrw]
@@ -68,60 +69,4 @@ struct Animal {
     idk2: u32,
     #[brw(if(version.version > 1))]
     villagebuildingref: Uuid,
-}
-
-#[binrw]
-#[derive(Debug, Default)]
-struct AnimalMovement {
-    #[brw(args(1, "Navy Movement"))]
-    version: Version,
-    path: ResourcePath,
-    #[brw(if(version.version > 0))]
-    pos: Option<PatternCursor>, //Get this instead in movementBase.pos if None
-    movement_base: MovementBase,
-}
-
-#[binrw]
-#[derive(Debug, Default)]
-struct MovementPathBase {
-    #[brw(args(1, "Movement Path Base"))]
-    version: Version,
-    init: Bool,
-    #[brw(if (init.bool || version.version == 0))]
-    poses: Array<PatternCursor>,
-    #[brw(if (init.bool || version.version == 0))]
-    idk: Bool,
-    #[brw(if (init.bool || version.version == 0))]
-    idk1: i32,
-    #[brw(if (init.bool || version.version == 0))]
-    idk2: Bool,
-}
-
-#[binrw]
-#[derive(Debug, Default)]
-struct ResourcePath {
-    #[brw(args(0, "Resources Path"))]
-    version: Version,
-    base: MovementPathBase,
-}
-
-#[binrw]
-#[derive(Debug, Default)]
-struct MovementBase {
-    #[brw(args(0, "Movement Base"))]
-    version: Version,
-    pos: PatternCursor,
-    idk: PatternCursor,
-    idk1: PatternCursor,
-    interpolator: MovementInterpolator,
-}
-
-#[binrw]
-#[derive(Debug, Default)]
-struct MovementInterpolator {
-    #[brw(args(0, "Movement Interpolator"))]
-    version: Version,
-    idk1: f32,
-    idk2: f32,
-    idk3: f32,
 }

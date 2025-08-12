@@ -171,7 +171,7 @@ pub struct Stock {
     version: Version,
     init: Bool,
     idk: u32,
-    map: Array<(Good, BuildingType)>,
+    map: Array<(Good, u32)>,
 }
 
 #[binrw]

@@ -15,6 +15,8 @@ mod player;
 use player::Players;
 mod buildings;
 use buildings::Villages;
+mod movement;
+use movement::SettlerMovement;
 
 fn main() -> Result<()> {
     simple_eyre::install()?;
@@ -109,7 +111,82 @@ struct Random {
 
 #[binrw]
 #[derive(Debug)]
-struct Settlers;
+struct Settlers {
+    #[brw(args(0, "SettlersSystem"))]
+    version: Version,
+    init: Bool,
+    workers: Array<(PlayerId, Worker)>,
+    constructor: Array<(PlayerId, Constructor)>,
+    carrier: Array<(PlayerId, Carrier)>,
+    bulldoser: Array<(PlayerId, Bulldozer)>,
+    soldier: Array<(PlayerId, Soldier)>,
+    specialist: Array<(PlayerId, Specialist)>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Worker {
+    #[brw(args(1, "SettlersWorker"))]
+    version: Version,
+    work_building_ref: Uuid,
+    ship_ref: Uuid,
+    test: [u32; 59], //TODO: filler -- decompiling goals takes too long; version 0 has less goals
+    settler: Settler,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Constructor {
+    #[brw(args(1, "SettlersConstructor"))]
+    version: Version,
+    #[br(dbg)]
+    test: [u32; 30], //TODO: filler -- decompiling goals takes too long
+    work_building_ref: Uuid,
+    settler: Settler,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Carrier;
+
+#[binrw]
+#[derive(Debug)]
+struct Bulldozer;
+
+#[binrw]
+#[derive(Debug)]
+struct Soldier;
+
+#[binrw]
+#[derive(Debug)]
+struct Specialist;
+
+#[binrw]
+#[derive(Debug)]
+struct Settler {
+    #[brw(args(0, "Settlers Settler"))]
+    version: Version,
+    id: Uuid,
+    movement: SettlerMovement,
+    animation: Animation,
+    package_ref: Uuid,
+    settler_type: u32,
+    state: u32,
+    test: [u32; 5], //TODO: filler -- decompiling goals takes too long
+
+    building_ref: Uuid,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Animation {
+    #[brw(args(1, "SettlersAnimation"))]
+    version: Version,
+    remaining_time: f32,
+    #[brw(if(version.version == 1))]
+    end_time: Option<f32>,
+    animation_type: u32,
+}
 
 #[binrw]
 #[derive(Debug)]

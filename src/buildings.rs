@@ -1,3 +1,4 @@
+use crate::helper_structs::BuildingType::*;
 use crate::helper_structs::*;
 use crate::player::Stock;
 use binrw::binrw;
@@ -16,7 +17,6 @@ pub struct Villages {
 #[binrw]
 #[derive(Debug)]
 struct Building {
-    #[br(dbg)]
     building_type: BuildingType,
     owner: PlayerId,
     #[brw(args(7, "VillageBuilding"))]
@@ -41,16 +41,16 @@ struct Building {
     bulldozing: Bulldozing,
     order: OrderContainer,
     idk5: Bool,
-    #[brw(if(version.version > 6 || building_type.0 == 0xf6e26cb3 || building_type.0 == 0xa7bbc573 || building_type.0 == 0x12e67603 || building_type.0 == 0x281f0783 || building_type.0 == 0x8c137e93))]
+    #[brw(if(version.version > 6 || matches!(building_type, Castle | Barracks | GuardHouse | WatchTower | Fortress)))]
     //military buildings
     military: Option<VillageMilitary>,
     carrier_refresh: CarrierRefresh,
     good_flags: GoodFlags,
     idk6: u32,
     tick: u32,
-    #[brw(if(version.version > 6 || building_type.0 == 0xa1445ef3))] // catapult
+    #[brw(if(version.version > 6 || matches!(building_type, Catapult)))]
     catapult: Option<Catapult>,
-    #[brw(if(version.version > 1 && building_type.0 == 0xcf525ff3))] // harbor
+    #[brw(if(version.version > 1 && matches!(building_type, Harbor)))]
     harbor: Option<Harbor>,
     #[brw(if(version.version > 4))]
     upgrade: Option<Upgrade>,
@@ -221,6 +221,7 @@ struct SettlersContainer {
 #[binrw]
 #[derive(Debug)]
 struct CarrierRefresh {
+    #[br(dbg)]
     #[brw(args(0, "Village CarrierRefresh"))]
     version: Version,
     idk: u32,
@@ -237,7 +238,7 @@ struct GoodFlags {
 #[binrw]
 #[derive(Debug)]
 struct Catapult {
-    #[brw(args(0, "Vllage Catapult"))]
+    #[brw(args(0, "Village Catapult"))]
     version: Version,
     target: PatternCursor,
     target_radomized: PatternCursor,
