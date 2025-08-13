@@ -23,7 +23,7 @@ struct Packages {
 
 #[binrw]
 #[derive(Debug)]
-struct Package {
+pub struct Package {
     #[brw(args("Transport Package"))]
     version: Version<1>,
     id: Uuid,
@@ -43,6 +43,12 @@ struct Package {
     idk6: PatternCursor,
     #[brw(if(version.version > 0))]
     id2: Uuid,
+}
+
+impl Ided for Package {
+    fn id(&self) -> Uuid {
+        self.id
+    }
 }
 
 #[binrw]

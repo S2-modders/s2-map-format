@@ -1,6 +1,6 @@
 use binrw::{BinRead, BinWrite, binrw};
 use bounded_integer::BoundedU32;
-use std::fmt;
+use std::{fmt, marker::PhantomData};
 use strum::*;
 
 use crate::Logic;
@@ -89,11 +89,20 @@ pub enum PlayerId {
 }
 
 #[binrw]
-#[derive(Default)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Uuid {
     #[brw(args("logic UniqueId"))]
     version: Version<0>,
     id: i64,
+}
+
+impl Default for Uuid {
+    fn default() -> Self {
+        Self {
+            version: Default::default(),
+            id: -1,
+        }
+    }
 }
 
 impl fmt::Debug for Uuid {
@@ -162,7 +171,7 @@ pub enum BuildingType {
 }
 
 #[binrw]
-#[derive(derive_more::From, derive_more::Into)]
+#[derive(derive_more::From, derive_more::Into, Clone, Copy, PartialEq, Eq)]
 #[brw(import(name:&str))]
 pub struct Version<const MAX_VER: u32> {
     #[br(try_map = |x: u32| x.try_into())]
@@ -195,6 +204,53 @@ impl Default for Version<0> {
 impl<const MAX_VER: u32> fmt::Debug for Version<MAX_VER> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.version.fmt(f)
+    }
+}
+
+#[binrw]
+#[derive(Debug)]
+pub struct Ref<I: Ided> {
+    id: Uuid,
+    _marker: PhantomData<I>,
+}
+
+impl<I: Ided> Default for Ref<I> {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            _marker: Default::default(),
+        }
+    }
+}
+
+impl<I: Ided> Ref<I> {
+    fn get<'a>(&self, provider: &'a [I]) -> Option<&'a I> {
+        provider.iter().find(|b| self.id == b.id())
+    }
+}
+
+pub trait Ided {
+    fn id(&self) -> Uuid;
+}
+
+#[binrw]
+pub struct CapedU32<const CAP: u32> {
+    #[br(try_map = |x: u32| x.try_into())]
+    #[bw(map = |x| x.get())]
+    val: BoundedU32<0, CAP>,
+}
+
+impl<const CAP: u32> fmt::Debug for CapedU32<CAP> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.val.fmt(f)
+    }
+}
+
+impl<const CAP: u32> CapedU32<CAP> {
+    pub fn new<const N: u32>() -> Self {
+        Self {
+            val: BoundedU32::<0, CAP>::const_new::<N>(),
+        }
     }
 }
 

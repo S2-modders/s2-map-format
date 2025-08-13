@@ -1,3 +1,4 @@
+use crate::buildings::Building;
 use crate::helper_structs::*;
 use crate::movement::SettlerMovement;
 use binrw::binrw;
@@ -18,7 +19,7 @@ pub struct Settlers {
 
 #[binrw]
 #[derive(Debug)]
-struct Worker {
+pub struct Worker {
     #[brw(args("SettlersWorker"))]
     version: Version<1>,
     work_building_ref: Uuid,
@@ -27,9 +28,15 @@ struct Worker {
     settler: Settler,
 }
 
+impl Ided for Worker {
+    fn id(&self) -> Uuid {
+        self.settler.id()
+    }
+}
+
 #[binrw]
 #[derive(Debug)]
-struct Constructor {
+pub struct Constructor {
     #[brw(args("SettlersConstructor"))]
     version: Version<0>,
     test: [u32; 6], //TODO: filler -- decompiling goals takes too long
@@ -37,9 +44,15 @@ struct Constructor {
     settler: Settler,
 }
 
+impl Ided for Constructor {
+    fn id(&self) -> Uuid {
+        self.settler.id()
+    }
+}
+
 #[binrw]
 #[derive(Debug)]
-struct Carrier {
+pub struct Carrier {
     #[brw(args("SettlersCarrier"))]
     version: Version<0>,
     test: [u32; 9], //TODO: filler -- decompiling goals takes too long
@@ -48,9 +61,15 @@ struct Carrier {
     settler: Settler,
 }
 
+impl Ided for Carrier {
+    fn id(&self) -> Uuid {
+        self.settler.id()
+    }
+}
+
 #[binrw]
 #[derive(Debug)]
-struct Bulldozer {
+pub struct Bulldozer {
     #[brw(args("SettlersBulldozer"))]
     version: Version<0>,
     test: [u32; 2], //TODO: filler -- decompiling goals takes too long
@@ -58,9 +77,15 @@ struct Bulldozer {
     settler: Settler,
 }
 
+impl Ided for Bulldozer {
+    fn id(&self) -> Uuid {
+        self.settler.id()
+    }
+}
+
 #[binrw]
 #[derive(Debug)]
-struct Soldier {
+pub struct Soldier {
     #[brw(args("SettlersSoldier"))]
     version: Version<3>,
     test: [u32; 2], //TODO: filler -- decompiling goals takes too long
@@ -76,6 +101,12 @@ struct Soldier {
     settler: Settler,
 }
 
+impl Ided for Soldier {
+    fn id(&self) -> Uuid {
+        self.settler.id()
+    }
+}
+
 #[binrw]
 #[derive(Debug)]
 struct LivePoints {
@@ -87,7 +118,7 @@ struct LivePoints {
 
 #[binrw]
 #[derive(Debug)]
-struct Specialist {
+pub struct Specialist {
     #[brw(args("SettlersSpecialist"))]
     version: Version<0>,
     #[br(dbg)]
@@ -97,9 +128,15 @@ struct Specialist {
     settler: Settler,
 }
 
+impl Ided for Specialist {
+    fn id(&self) -> Uuid {
+        self.settler.id()
+    }
+}
+
 #[binrw]
 #[derive(Debug)]
-struct Settler {
+pub struct Settler {
     #[brw(args("Settlers Settler"))]
     version: Version<0>,
     id: Uuid,
@@ -109,7 +146,13 @@ struct Settler {
     settler_type: u32,
     state: u32,
     test: [u32; 5], //TODO: filler -- decompiling goals takes too long
-    building_ref: Uuid,
+    building_ref: Ref<Building>,
+}
+
+impl Ided for Settler {
+    fn id(&self) -> Uuid {
+        self.id
+    }
 }
 
 #[binrw]

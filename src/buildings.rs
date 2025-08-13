@@ -1,6 +1,8 @@
 use crate::helper_structs::BuildingType::*;
 use crate::helper_structs::*;
 use crate::player::Stock;
+use crate::resources::Deposit;
+use crate::settlers::{Settler, Worker};
 use binrw::binrw;
 
 #[binrw]
@@ -16,7 +18,7 @@ pub struct Villages {
 
 #[binrw]
 #[derive(Debug)]
-struct Building {
+pub struct Building {
     building_type: BuildingType,
     owner: PlayerId,
     #[brw(args("VillageBuilding"))]
@@ -26,7 +28,7 @@ struct Building {
     ticker: Ticker,
     depot: Depot,
     workers: Workers,
-    deposit_ref: Uuid,
+    deposit_ref: Ref<Deposit>,
     #[brw(if(version.version > 3))]
     animal_ref: Option<Uuid>,
     construction: Construction,
@@ -34,7 +36,7 @@ struct Building {
     blocking: Blocking,
     idk3: u32,
     tribe: u32,
-    flag_ref: Uuid,
+    flag_ref: Uuid, //TODO
     settler_spawn: SettlerSpawn,
     mining_pos: PatternCursor,
     territory_updater: TerritoryUpdater,
@@ -54,6 +56,12 @@ struct Building {
     harbor: Option<Harbor>,
     #[brw(if(version.version > 4))]
     upgrade: Option<Upgrade>,
+}
+
+impl Ided for Building {
+    fn id(&self) -> Uuid {
+        self.id
+    }
 }
 
 #[binrw]
@@ -88,7 +96,7 @@ struct NeededGoods {
 #[derive(Debug)]
 struct Package {
     idk: u32,
-    package_ref: Uuid,
+    package_ref: Ref<crate::transport::Package>,
 }
 
 #[binrw]
@@ -96,7 +104,7 @@ struct Package {
 struct ReturningGoods {
     #[brw(args("Returning Good System"))]
     version: Version<0>,
-    returning_goods: Array<Uuid>, //package refs
+    returning_goods: Array<Ref<crate::transport::Package>>,
 }
 
 #[binrw]
@@ -104,7 +112,7 @@ struct ReturningGoods {
 struct Workers {
     #[brw(args("VillageWorkers"))]
     version: Version<0>,
-    workers: Array<Uuid>, //worker refs
+    workers: Array<Ref<Worker>>,
 }
 
 #[binrw]
@@ -114,7 +122,7 @@ struct Construction {
     version: Version<2>,
     progress: f32,
     progress_start_idk: f32,
-    settler_ref: Uuid,
+    settler_ref: Ref<Settler>,
     #[br(if(version.version > 0))]
     stock: Option<Stock>,
     #[br(if(version.version > 1))]
@@ -154,7 +162,7 @@ struct Bulldozing {
     #[brw(args("VillageBulldozing"))]
     version: Version<1>,
     progress: f32,
-    settler_ref: Uuid,
+    settler_ref: Ref<Settler>,
     idk: u32,
     #[br(if(version.version > 0))]
     building_type: Option<BuildingType>,
@@ -165,7 +173,7 @@ struct Bulldozing {
 struct OrderContainer {
     #[brw(args("Order Container"))]
     version: Version<0>,
-    orders: Array<Uuid>, // Order refs
+    orders: Array<Ref<Order>>,
 }
 
 #[binrw]
@@ -215,7 +223,7 @@ struct Interceptors {
 struct SettlersContainer {
     #[brw(args("Settlers Container"))]
     version: Version<0>,
-    settlers: Array<Uuid>, // Settler refs
+    settlers: Array<Ref<Settler>>,
 }
 
 #[binrw]
@@ -301,7 +309,7 @@ struct HarborReceiver {
     #[brw(args("Village HarborReceiver"))]
     version: Version<0>,
     idk: u32,
-    building_ref: Uuid,
+    building_ref: Ref<Building>,
 }
 
 #[binrw]
@@ -376,9 +384,15 @@ struct Order {
     ordered: Good,
     #[brw(if(version.version > 0))]
     used: Bool,
-    building_ref: Uuid,
+    building_ref: Ref<Building>,
     flag_ref: Uuid,
     street_ref: Uuid,
     #[brw(if(version.version > 1))]
-    building_ref2: Option<Uuid>,
+    building_ref2: Ref<Building>,
+}
+
+impl Ided for Order {
+    fn id(&self) -> Uuid {
+        self.id
+    }
 }

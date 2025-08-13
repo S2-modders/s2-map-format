@@ -40,7 +40,7 @@ struct UPos {
 
 #[binrw]
 #[derive(Debug)]
-struct Deposit {
+pub struct Deposit {
     #[brw(args("deposit"))]
     version: Version<1>,
     id: Uuid,
@@ -54,9 +54,15 @@ struct Deposit {
     life_time: u32,
 }
 
+impl Ided for Deposit {
+    fn id(&self) -> Uuid {
+        self.id
+    }
+}
+
 #[binrw]
 #[derive(Debug)]
-struct Animal {
+pub struct Animal {
     mapkey: u32,
     #[brw(args("Resources Animal"))]
     version: Version<2>,
@@ -69,4 +75,10 @@ struct Animal {
     idk2: u32,
     #[brw(if(version.version > 1))]
     villagebuildingref: Uuid,
+}
+
+impl Ided for Animal {
+    fn id(&self) -> Uuid {
+        self.id
+    }
 }

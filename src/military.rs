@@ -20,7 +20,7 @@ pub struct Military {
 struct Recruiting {
     #[brw(args("Military Recruting"))]
     version: Version<0>,
-    tick: u32, //0 - 100 (current tick mod 101)
+    tick: CapedU32<100>,
 }
 
 #[binrw]
@@ -28,7 +28,7 @@ struct Recruiting {
 struct Distances {
     #[brw(args("Military Distances"))]
     version: Version<0>,
-    tick: u32, //0 - 10 (current tick mod 11)
+    tick: CapedU32<10>,
 }
 
 #[binrw]
@@ -36,7 +36,7 @@ struct Distances {
 struct Allocation {
     #[brw(args("Military Allocation"))]
     version: Version<0>,
-    tick: u32, //0 - 20 (current tick mod 21)
+    tick: CapedU32<20>,
 }
 
 #[binrw]
@@ -96,5 +96,5 @@ struct Attack {
 struct Training {
     #[brw(args("Military Training"))]
     version: Version<0>,
-    tick: u32, //0 - 300 (current tick mod 301)
+    tick: CapedU32<300>,
 }
