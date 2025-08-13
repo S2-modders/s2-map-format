@@ -1,4 +1,5 @@
 use binrw::{BinRead, BinWrite, binrw};
+use bounded_integer::BoundedU32;
 use std::fmt;
 use strum::*;
 
@@ -90,8 +91,8 @@ pub enum PlayerId {
 #[binrw]
 #[derive(Default)]
 pub struct Uuid {
-    #[brw(args(0, "logic UniqueId"))]
-    version: Version,
+    #[brw(args("logic UniqueId"))]
+    version: Version<0>,
     id: i64,
 }
 
@@ -161,12 +162,12 @@ pub enum BuildingType {
 }
 
 #[binrw]
-#[derive(Default, derive_more::From, derive_more::Into)]
-#[brw(import(max_version: u32, name:&str))]
-pub struct Version {
-    #[br(assert(version <= max_version))]
-    #[bw(assert(*version <= max_version))]
-    pub version: u32,
+#[derive(derive_more::From, derive_more::Into)]
+#[brw(import(name:&str))]
+pub struct Version<const MAX_VER: u32> {
+    #[br(try_map = |x: u32| x.try_into())]
+    #[bw(map = |x| x.get())]
+    pub version: BoundedU32<0, MAX_VER>,
     #[br(assert(hash == crc32fast::hash(name.as_bytes())))]
     #[bw(calc = crc32fast::hash(name.as_bytes()))]
     hash: u32,
@@ -175,7 +176,23 @@ pub struct Version {
     len: u32,
 }
 
-impl fmt::Debug for Version {
+impl<const MAX_VER: u32> Version<MAX_VER> {
+    pub fn new<const VER: u32>() -> Self {
+        Self {
+            version: BoundedU32::<0, MAX_VER>::const_new::<VER>(),
+        }
+    }
+}
+
+impl Default for Version<0> {
+    fn default() -> Self {
+        Self {
+            version: Default::default(),
+        }
+    }
+}
+
+impl<const MAX_VER: u32> fmt::Debug for Version<MAX_VER> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.version.fmt(f)
     }
@@ -183,8 +200,8 @@ impl fmt::Debug for Version {
 
 #[binrw]
 pub struct CoreUuid {
-    #[brw(args(0, "Core UUID"))]
-    version: Version,
+    #[brw(args("Core UUID"))]
+    version: Version<0>,
     init: Bool,
     id: u128,
 }
@@ -197,8 +214,8 @@ impl fmt::Debug for CoreUuid {
 
 #[binrw]
 pub struct ElevationCursor {
-    #[brw(args(0, "ElevationCursor"))]
-    version: Version,
+    #[brw(args("ElevationCursor"))]
+    version: Version<0>,
     pub x: u32,
     pub y: u32,
 }
@@ -212,8 +229,8 @@ impl fmt::Debug for ElevationCursor {
 #[binrw]
 #[derive(Default)]
 pub struct PatternCursor {
-    #[brw(args(0, "PatternCursor"))]
-    version: Version,
+    #[brw(args("PatternCursor"))]
+    version: Version<0>,
     pub x: u32,
     pub y: u32,
 }

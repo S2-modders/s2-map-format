@@ -16,6 +16,7 @@ path = "src/uml_main.rs"
 
 [dependencies]
 binrw = "0.15.0"
+bounded-integer = "0.6.0"
 crc32fast = "1.4.2"
 decryptor_s2 = "0.1.0"
 derive_more = { version = "2.0.1", features = ["deref", "from", "into"] }

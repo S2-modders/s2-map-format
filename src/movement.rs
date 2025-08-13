@@ -4,8 +4,8 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct SettlerMovement {
-    #[brw(args(1, "MovementMovement"))]
-    version: Version,
+    #[brw(args("MovementMovement"))]
+    version: Version<1>,
     movement_rough: Rough,
     movement_fine: Fine,
     movement_interpolator: Interpolator,
@@ -17,10 +17,10 @@ pub struct SettlerMovement {
 }
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct AnimalMovement {
-    #[brw(args(1, "Navy Movement"))]
-    version: Version,
+    #[brw(args("Navy Movement"))]
+    version: Version<1>,
     path: ResourcePath,
     #[brw(if(version.version > 0))]
     pos: Option<PatternCursor>, //Get this instead in movementBase.pos if None
@@ -28,10 +28,10 @@ pub struct AnimalMovement {
 }
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct PathBase {
-    #[brw(args(1, "Movement Path Base"))]
-    version: Version,
+    #[brw(args("Movement Path Base"))]
+    version: Version<1>,
     init: Bool,
     #[brw(if (init.bool || version.version == 0))]
     poses: Array<PatternCursor>,
@@ -44,18 +44,18 @@ struct PathBase {
 }
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct ResourcePath {
-    #[brw(args(0, "Resources Path"))]
-    version: Version,
+    #[brw(args("Resources Path"))]
+    version: Version<0>,
     base: PathBase,
 }
 
 #[binrw]
 #[derive(Debug, Default)]
 struct Base {
-    #[brw(args(0, "Movement Base"))]
-    version: Version,
+    #[brw(args("Movement Base"))]
+    version: Version<0>,
     pos: PatternCursor,
     idk: PatternCursor,
     idk1: PatternCursor,
@@ -65,8 +65,8 @@ struct Base {
 #[binrw]
 #[derive(Debug)]
 struct Rough {
-    #[brw(args(0, "Movement Rough"))]
-    version: Version,
+    #[brw(args("Movement Rough"))]
+    version: Version<0>,
     init: Bool,
     pos0: PatternCursor,
     pos1: PatternCursor,
@@ -78,8 +78,8 @@ struct Rough {
 #[binrw]
 #[derive(Debug)]
 struct Path {
-    #[brw(args(0, "Path"))]
-    version: Version,
+    #[brw(args("Path"))]
+    version: Version<0>,
     idk: u32,
     pos: PatternCursor,
     free_path: FreePath,
@@ -89,8 +89,8 @@ struct Path {
 #[binrw]
 #[derive(Debug)]
 struct FreePath {
-    #[brw(args(0, "Movement Free Path"))]
-    version: Version,
+    #[brw(args("Movement Free Path"))]
+    version: Version<0>,
     init: Bool,
     path_base: PathBase,
 }
@@ -98,8 +98,8 @@ struct FreePath {
 #[binrw]
 #[derive(Debug)]
 struct StreetPath {
-    #[brw(args(0, "Movement Street Path"))]
-    version: Version,
+    #[brw(args("Movement Street Path"))]
+    version: Version<0>,
     idk0: Bool,
     idk1: Bool,
     idk2: Bool,
@@ -125,8 +125,8 @@ struct Fine {
 #[binrw]
 #[derive(Debug)]
 struct FinePath {
-    #[brw(args(0, "Movement Fine Path"))]
-    version: Version,
+    #[brw(args("Movement Fine Path"))]
+    version: Version<0>,
     init: Bool,
     path: Array<ElevationCursor>,
     idk: Bool,
@@ -136,8 +136,8 @@ struct FinePath {
 #[binrw]
 #[derive(Debug, Default)]
 struct Interpolator {
-    #[brw(args(0, "Movement Interpolator"))]
-    version: Version,
+    #[brw(args("Movement Interpolator"))]
+    version: Version<0>,
     idk1: f32,
     idk2: f32,
     idk3: f32,

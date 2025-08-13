@@ -4,8 +4,8 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Military {
-    #[brw(args(0, "MilitarySystem"))]
-    version: Version,
+    #[brw(args("MilitarySystem"))]
+    version: Version<0>,
     init: Bool,
     recruiting: Recruiting,
     distances: Distances,
@@ -18,32 +18,32 @@ pub struct Military {
 #[binrw]
 #[derive(Debug)]
 struct Recruiting {
-    #[brw(args(0, "Military Recruting"))]
-    version: Version,
+    #[brw(args("Military Recruting"))]
+    version: Version<0>,
     tick: u32, //0 - 100 (current tick mod 101)
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Distances {
-    #[brw(args(0, "Military Distances"))]
-    version: Version,
+    #[brw(args("Military Distances"))]
+    version: Version<0>,
     tick: u32, //0 - 10 (current tick mod 11)
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Allocation {
-    #[brw(args(0, "Military Allocation"))]
-    version: Version,
+    #[brw(args("Military Allocation"))]
+    version: Version<0>,
     tick: u32, //0 - 20 (current tick mod 21)
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Fight {
-    #[brw(args(1, "Military Fight"))]
-    version: Version,
+    #[brw(args("Military Fight"))]
+    version: Version<1>,
     fighters: Array<Fighters>,
     fighters2: Array<Fighters>,
     #[brw(if(version.version > 0))]
@@ -53,8 +53,8 @@ struct Fight {
 #[binrw]
 #[derive(Debug)]
 struct Fighters {
-    #[brw(args(2, "Military Fighters"))]
-    version: Version,
+    #[brw(args("Military Fighters"))]
+    version: Version<2>,
     init: Bool,
     #[brw(if(version.version < 1))]
     settler_ref0: Option<Uuid>,
@@ -76,8 +76,8 @@ struct Fighters {
 #[binrw]
 #[derive(Debug)]
 struct FightConnections {
-    #[brw(args(0, "Military FightConnections"))]
-    version: Version,
+    #[brw(args("Military FightConnections"))]
+    version: Version<0>,
     init: Bool,
     settler_ref0: Uuid,
     settler_ref1: Uuid,
@@ -87,14 +87,14 @@ struct FightConnections {
 #[binrw]
 #[derive(Debug)]
 struct Attack {
-    #[brw(args(0, "Military Attack"))]
-    version: Version,
+    #[brw(args("Military Attack"))]
+    version: Version<0>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Training {
-    #[brw(args(0, "Military Training"))]
-    version: Version,
+    #[brw(args("Military Training"))]
+    version: Version<0>,
     tick: u32, //0 - 300 (current tick mod 301)
 }

@@ -4,8 +4,8 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Transport {
-    #[brw(args(0, "Transport System"))]
-    version: Version,
+    #[brw(args("Transport System"))]
+    version: Version<0>,
     init: Bool,
     packages: Packages,
     package_needs: PackageNeeds,
@@ -15,8 +15,8 @@ pub struct Transport {
 #[binrw]
 #[derive(Debug)]
 struct Packages {
-    #[brw(args(0, "Package System"))]
-    version: Version,
+    #[brw(args("Package System"))]
+    version: Version<0>,
     init: Bool,
     package: Array<(PlayerId, Package)>,
 }
@@ -24,8 +24,8 @@ struct Packages {
 #[binrw]
 #[derive(Debug)]
 struct Package {
-    #[brw(args(1, "Transport Package"))]
-    version: Version,
+    #[brw(args("Transport Package"))]
+    version: Version<1>,
     id: Uuid,
     idk: Bool,
     idk1: Bool,
@@ -48,8 +48,8 @@ struct Package {
 #[binrw]
 #[derive(Debug)]
 struct PackageNeeds {
-    #[brw(args(0, "Transport PackageNeedSystem"))]
-    version: Version,
+    #[brw(args("Transport PackageNeedSystem"))]
+    version: Version<0>,
     init: Bool,
     package: Array<PackageNeedTarget>,
 }
@@ -57,8 +57,8 @@ struct PackageNeeds {
 #[binrw]
 #[derive(Debug)]
 struct PackageNeedTarget {
-    #[brw(args(0, "Transport PackageNeedTarget"))]
-    version: Version,
+    #[brw(args("Transport PackageNeedTarget"))]
+    version: Version<0>,
     package_ref: Uuid,
     building_ref: Uuid,
 }
@@ -66,8 +66,8 @@ struct PackageNeedTarget {
 #[binrw]
 #[derive(Debug)]
 struct BuildingNeeds {
-    #[brw(args(0, "Transport BuildingNeedSystem"))]
-    version: Version,
+    #[brw(args("Transport BuildingNeedSystem"))]
+    version: Version<0>,
     init: Bool,
     building_need_goods: Array<BuildingNeedGood>,
 }
@@ -75,8 +75,8 @@ struct BuildingNeeds {
 #[binrw]
 #[derive(Debug)]
 struct BuildingNeedGood {
-    #[brw(args(1, "Transport BuildingNeedGood"))]
-    version: Version,
+    #[brw(args("Transport BuildingNeedGood"))]
+    version: Version<1>,
     building_ref: Uuid,
     good: Good,
     package_ref: Uuid,

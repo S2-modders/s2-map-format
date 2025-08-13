@@ -6,8 +6,8 @@ use strum::*;
 #[derive(Debug)]
 pub struct Logic {
     pub mapinfo: MapInfo,
-    #[brw(args(7, "LogicSystem"))]
-    pub version: Version,
+    #[brw(args("LogicSystem"))]
+    pub version: Version<7>,
     pub max_id: i64,
     pub initialized: Bool,
     #[brw(if(version.version > 0 && version.version < 6))]
@@ -27,8 +27,8 @@ pub struct Logic {
 #[binrw]
 #[derive(Debug)]
 pub struct MapInfo {
-    #[brw(args(9, "MapInfo"))]
-    pub version: Version,
+    #[brw(args("MapInfo"))]
+    pub version: Version<9>,
     pub idk: Array<PatternCursor>,
     pub map_name: Str,
     #[brw(if(version.version > 1))]
@@ -69,8 +69,8 @@ pub enum MissionTarget {
 #[binrw]
 #[derive(Debug)]
 pub struct TriggerSys {
-    #[brw(args(0, "TriggerSystem"))]
-    pub version: Version,
+    #[brw(args("TriggerSystem"))]
+    pub version: Version<0>,
     pub init: Bool,
     pub triggers: Array<Trigger>,
 }
@@ -78,8 +78,8 @@ pub struct TriggerSys {
 #[binrw]
 #[derive(Debug)]
 pub struct Trigger {
-    #[brw(args(1, "TriggerObject"))]
-    version: Version,
+    #[brw(args("TriggerObject"))]
+    version: Version<1>,
     init: Bool,
     uuid: Uuid,
     trigger_type: TriggerType,
@@ -111,7 +111,7 @@ impl Trigger {
         player_id: PlayerId,
     ) -> Trigger {
         Trigger {
-            version: 1.into(),
+            version: Version::new::<1>(),
             init: true.into(),
             uuid: Uuid::new(logic),
             active: true.into(),

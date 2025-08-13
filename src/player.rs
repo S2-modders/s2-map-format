@@ -5,8 +5,8 @@ use strum::*;
 #[binrw]
 #[derive(Debug)]
 pub struct Players {
-    #[brw(args(0, "PlayerSystem"))]
-    version: Version,
+    #[brw(args("PlayerSystem"))]
+    version: Version<0>,
     init: Bool,
     players: [OptionalPlayer; PlayerId::COUNT],
 }
@@ -23,8 +23,8 @@ struct OptionalPlayer {
 #[binrw]
 #[derive(Debug)]
 struct Player {
-    #[brw(args(5, "PlayerObject"))]
-    version: Version,
+    #[brw(args("PlayerObject"))]
+    version: Version<5>,
     init: Bool,
     name: Str,
     id: PlayerId,
@@ -53,8 +53,8 @@ struct Player {
 #[binrw]
 #[derive(Debug)]
 struct LockSmith {
-    #[brw(args(1, "PlayerLocksmith"))]
-    version: Version,
+    #[brw(args("PlayerLocksmith"))]
+    version: Version<1>,
     settings: [(f32, f32); 12],
     #[brw(if(version.version > 0))]
     idk: u32,
@@ -63,8 +63,8 @@ struct LockSmith {
 #[binrw]
 #[derive(Debug)]
 struct GoodPriorities {
-    #[brw(args(0, "Good Priorities"))]
-    version: Version,
+    #[brw(args("Good Priorities"))]
+    version: Version<0>,
     init: Bool,
     settings: Array<GoodPriority>,
 }
@@ -72,8 +72,8 @@ struct GoodPriorities {
 #[binrw]
 #[derive(Debug)]
 struct GoodPriority {
-    #[brw(args(0, "Good Priority"))]
-    version: Version,
+    #[brw(args("Good Priority"))]
+    version: Version<0>,
     idk: u32,
     idk2: u32,
 }
@@ -81,8 +81,8 @@ struct GoodPriority {
 #[binrw]
 #[derive(Debug)]
 struct GoodArrangement {
-    #[brw(args(0, "Good Arrangement"))]
-    version: Version,
+    #[brw(args("Good Arrangement"))]
+    version: Version<0>,
     init: Bool,
     arrangementgroups: Array<GoodArrangementGroup>,
 }
@@ -90,8 +90,8 @@ struct GoodArrangement {
 #[binrw]
 #[derive(Debug)]
 struct GoodArrangementGroup {
-    #[brw(args(0, "Player GoodArrangementGroup"))]
-    version: Version,
+    #[brw(args("Player GoodArrangementGroup"))]
+    version: Version<0>,
     init: Bool,
     base_arrangement: ArrangementBase,
     good: Good,
@@ -100,16 +100,16 @@ struct GoodArrangementGroup {
 #[binrw]
 #[derive(Debug)]
 struct ArrangementBase {
-    #[brw(args(0, "Player ArrangementBase"))]
-    version: Version,
+    #[brw(args("Player ArrangementBase"))]
+    version: Version<0>,
     arrangements: Array<ArrangementObject>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct ArrangementObject {
-    #[brw(args(0, "Player ArrangementObject"))]
-    version: Version,
+    #[brw(args("Player ArrangementObject"))]
+    version: Version<0>,
     percentage: f32,
     idk: f32,
     obj_type: u32,
@@ -118,8 +118,8 @@ struct ArrangementObject {
 #[binrw]
 #[derive(Debug)]
 struct PlayerMilitary {
-    #[brw(args(0, "Player Military"))]
-    version: Version,
+    #[brw(args("Player Military"))]
+    version: Version<0>,
     idk0: f32,
     idk1: f32,
     idk2: f32,
@@ -132,16 +132,16 @@ struct PlayerMilitary {
 #[binrw]
 #[derive(Debug)]
 struct Messages {
-    #[brw(args(0, "Messages"))]
-    version: Version,
+    #[brw(args("Messages"))]
+    version: Version<0>,
     messages: Array<Message>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Message {
-    #[brw(args(2, "Message"))]
-    version: Version,
+    #[brw(args("Message"))]
+    version: Version<2>,
     idk: f32,
     pos: PatternCursor,
     msg: Str,
@@ -159,16 +159,16 @@ struct Message {
 #[binrw]
 #[derive(Debug)]
 struct MsgId {
-    #[brw(args(0, "uniqueId"))]
-    version: Version,
+    #[brw(args("uniqueId"))]
+    version: Version<0>,
     id: u64,
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct Stock {
-    #[brw(args(0, "Stock"))]
-    version: Version,
+    #[brw(args("Stock"))]
+    version: Version<0>,
     init: Bool,
     idk: u32,
     map: Array<(Good, u32)>,
@@ -177,7 +177,7 @@ pub struct Stock {
 #[binrw]
 #[derive(Debug)]
 struct ShipNames {
-    #[brw(args(0, "Player ShipNames"))]
-    version: Version,
+    #[brw(args("Player ShipNames"))]
+    version: Version<0>,
     ships: u32,
 }

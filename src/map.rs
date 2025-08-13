@@ -5,8 +5,8 @@ use strum::*;
 #[binrw]
 #[derive(Debug)]
 pub struct Map {
-    #[brw(args(0, "MapSystem"))]
-    version: Version,
+    #[brw(args("MapSystem"))]
+    version: Version<0>,
     init: Bool,
     width: u32,
     height: u32,
@@ -22,8 +22,8 @@ pub struct Map {
 #[binrw]
 #[derive(Debug)]
 struct ElevationMap {
-    #[brw(args(1, "ElevationMap"))]
-    version: Version,
+    #[brw(args("ElevationMap"))]
+    version: Version<1>,
     init: Bool,
     idk: u32,
     #[brw(if(version.version > 0))]
@@ -40,8 +40,8 @@ struct ElevationMap {
 #[binrw]
 #[derive(Debug)]
 struct PatternMap {
-    #[brw(args(0, "PatternMap"))]
-    version: Version,
+    #[brw(args("PatternMap"))]
+    version: Version<0>,
     init: Bool,
     patterns: Array<u32>,
 }
@@ -49,8 +49,8 @@ struct PatternMap {
 #[binrw]
 #[derive(Debug)]
 struct GridStatesMap {
-    #[brw(args(0, "GridStatesMap"))]
-    version: Version,
+    #[brw(args("GridStatesMap"))]
+    version: Version<0>,
     init: Bool,
     gridstates: Array<u32>,
 }
@@ -58,8 +58,8 @@ struct GridStatesMap {
 #[binrw]
 #[derive(Debug)]
 struct ResourceMap {
-    #[brw(args(0, "Map Resources"))]
-    version: Version,
+    #[brw(args("Map Resources"))]
+    version: Version<0>,
     init: Bool,
     width: u32,
     height: u32,
@@ -70,8 +70,8 @@ struct ResourceMap {
 #[binrw]
 #[derive(Debug)]
 struct TerritoryMap {
-    #[brw(args(0, "Map Territory"))]
-    version: Version,
+    #[brw(args("Map Territory"))]
+    version: Version<0>,
     init: Bool,
     width: u32,
     height: u32,
@@ -82,8 +82,8 @@ struct TerritoryMap {
 #[binrw]
 #[derive(Debug)]
 struct ExplorationMap {
-    #[brw(args(1, "Map Exploration"))] //TODO: why can this be 1?
-    version: Version,
+    #[brw(args("Map Exploration"))] //TODO: why can this be 1?
+    version: Version<1>,
     init: Bool,
     width: u32,
     height: u32,
@@ -94,8 +94,8 @@ struct ExplorationMap {
 #[binrw]
 #[derive(Debug)]
 struct ContinentMap {
-    #[brw(args(1, "Map Continents"))]
-    version: Version,
+    #[brw(args("Map Continents"))]
+    version: Version<1>,
     init: Bool,
     width: u32,
     height: u32,
@@ -107,10 +107,10 @@ struct ContinentMap {
 }
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Continent {
-    #[brw(args(3, "Map Continent"))]
-    version: Version,
+    #[brw(args("Map Continent"))]
+    version: Version<3>,
     idk: u32,
     init: Bool,
     id: u32,

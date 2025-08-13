@@ -39,6 +39,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "bounded-integer"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44c9c9004ccb053345b305c7bf142e2b5a6d4366b73f389585bdc1b202a7209d"
+
+[[package]]
 name = "bytemuck"
 version = "1.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -251,6 +257,7 @@ name = "s2-map-format"
 version = "0.1.0"
 dependencies = [
  "binrw",
+ "bounded-integer",
  "crc32fast",
  "decryptor_s2",
  "derive_more",

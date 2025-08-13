@@ -4,8 +4,8 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Doodads {
-    #[brw(args(0, "DoodadsSystem"))]
-    version: Version,
+    #[brw(args("DoodadsSystem"))]
+    version: Version<0>,
     init: Bool,
     map1: Array<Doodad>,
     map2: Array<Doodad>,
@@ -16,8 +16,8 @@ pub struct Doodads {
 #[derive(Debug)]
 struct Doodad {
     type_id: u32,
-    #[brw(args(1, "DoodadsObject"))] //TODO: why 1 and not 0?
-    version: Version,
+    #[brw(args("DoodadsObject"))] //TODO: why 1 and not 0?
+    version: Version<1>,
     id: Uuid,
     pos: ElevationCursor,
     #[br(if(has_lifetime(type_id)))]

@@ -72,8 +72,8 @@ struct MapFile {
 #[binrw]
 #[derive(Debug)]
 struct Ambients {
-    #[brw(args(0, "Logic Ambients"))]
-    version: Version,
+    #[brw(args("Logic Ambients"))]
+    version: Version<0>,
     init: Bool,
     ambients: Array<Ambient>,
 }
@@ -88,8 +88,8 @@ struct Ambient {
 #[binrw]
 #[derive(Debug)]
 struct GameFileLogic {
-    #[brw(args(2, "Game File Logic"))]
-    version: Version,
+    #[brw(args("Game File Logic"))]
+    version: Version<2>,
     #[brw(if(version.version > 0))]
     random: Option<Random>,
     players: Players,
@@ -108,8 +108,8 @@ struct GameFileLogic {
 #[binrw]
 #[derive(Debug)]
 struct Random {
-    #[brw(args(0, "Logic Random"))]
-    version: Version,
+    #[brw(args("Logic Random"))]
+    version: Version<0>,
     init: Bool,
     state: u64,
 }
@@ -133,7 +133,8 @@ struct Stats;
 #[binrw]
 #[derive(Debug)]
 struct GameScript {
-    version: Version,
+    #[brw(args("GameScript"))]
+    version: Version<0>,
     idk: Bool,
     map_name: Str,
     persistent: Array<(Str, u32)>,

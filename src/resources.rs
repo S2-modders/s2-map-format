@@ -5,8 +5,8 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Resources {
-    #[brw(args(4, "resources"))]
-    version: Version,
+    #[brw(args("resources"))]
+    version: Version<4>,
     init: Bool,
     deposits: Array<(u32, Deposit)>,
 
@@ -23,8 +23,8 @@ pub struct Resources {
 #[binrw]
 #[derive(Debug)]
 struct AnimalRespawn {
-    #[brw(args(0, "Resources AnimalRespawn"))]
-    version: Version,
+    #[brw(args("Resources AnimalRespawn"))]
+    version: Version<0>,
     init: Bool,
     tick: u32,
     inc: u32,
@@ -41,8 +41,8 @@ struct UPos {
 #[binrw]
 #[derive(Debug)]
 struct Deposit {
-    #[brw(args(1, "deposit"))]
-    version: Version,
+    #[brw(args("deposit"))]
+    version: Version<1>,
     id: Uuid,
     pos: PatternCursor,
     buildingref: Uuid,
@@ -55,11 +55,11 @@ struct Deposit {
 }
 
 #[binrw]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Animal {
     mapkey: u32,
-    #[brw(args(2, "Resources Animal"))]
-    version: Version,
+    #[brw(args("Resources Animal"))]
+    version: Version<2>,
     id: Uuid,
     idk: f32,
     pos: PatternCursor,
