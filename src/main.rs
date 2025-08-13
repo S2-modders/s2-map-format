@@ -19,6 +19,7 @@ mod movement;
 mod settlers;
 use settlers::Settlers;
 mod transport;
+use strum::EnumCount;
 use transport::Transport;
 mod military;
 use military::Military;
@@ -124,7 +125,27 @@ struct Ai;
 
 #[binrw]
 #[derive(Debug)]
-struct Stats;
+struct Stats {
+    #[brw(args("LogicStatistics"))]
+    version: Version<0>,
+    idk: u32,
+    stats: Array<(Uuid, u32, f32, u32)>,
+    player_stats: [PlayerStats; PlayerId::COUNT],
+}
+
+#[binrw]
+#[derive(Debug)]
+struct PlayerStats {
+    #[brw(args("LogicPlayerStatistics"))]
+    version: Version<2>,
+    stats: [Array<u32>; PlayerId::COUNT],
+    stats2: [Array<u32>; 14],
+    idk: u32,
+    #[brw(if(version.version > 0))]
+    died_soldiers: u32,
+    #[brw(if(version.version > 1))]
+    territory: u32,
+}
 
 #[binrw]
 #[derive(Debug)]
