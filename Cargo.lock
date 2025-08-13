@@ -254,8 +254,11 @@ dependencies = [
  "crc32fast",
  "decryptor_s2",
  "derive_more",
+ "quote",
  "simple-eyre",
  "strum",
+ "syn",
+ "walkdir",
 ]
 
 [[package]]

@@ -41,14 +41,14 @@ struct Building {
     bulldozing: Bulldozing,
     order: OrderContainer,
     idk5: Bool,
-    #[brw(if(version.version > 6 || matches!(building_type, Castle | Barracks | GuardHouse | WatchTower | Fortress)))]
+    #[brw(if(version.version < 6 || matches!(building_type, Castle | Barracks | GuardHouse | Tower | WatchTower | Fortress)))]
     //military buildings
     military: Option<VillageMilitary>,
     carrier_refresh: CarrierRefresh,
     good_flags: GoodFlags,
     idk6: u32,
     tick: u32,
-    #[brw(if(version.version > 6 || matches!(building_type, Catapult)))]
+    #[brw(if(version.version < 6 || matches!(building_type, Catapult)))]
     catapult: Option<Catapult>,
     #[brw(if(version.version > 1 && matches!(building_type, Harbor)))]
     harbor: Option<Harbor>,
@@ -221,7 +221,6 @@ struct SettlersContainer {
 #[binrw]
 #[derive(Debug)]
 struct CarrierRefresh {
-    #[br(dbg)]
     #[brw(args(0, "Village CarrierRefresh"))]
     version: Version,
     idk: u32,

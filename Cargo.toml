@@ -2,11 +2,25 @@
 name = "s2-map-format"
 version = "0.1.0"
 edition = "2024"
+default-run = "map_parser"
+
+[[bin]]
+name = "map_parser"
+path = "src/main.rs"
+
+[[bin]]
+name = "uml"
+path = "src/uml_main.rs"
+
+
 
 [dependencies]
 binrw = "0.15.0"
 crc32fast = "1.4.2"
 decryptor_s2 = "0.1.0"
 derive_more = { version = "2.0.1", features = ["deref", "from", "into"] }
+quote = "1.0.40"
 simple-eyre = "0.3.1"
 strum = { version = "0.27.0", features = ["derive"] }
+syn = { version = "2.0.104", features = ["full", "parsing"] }
+walkdir = "2.5.0"
