@@ -29,6 +29,14 @@ pub struct AnimalMovement {
 
 #[binrw]
 #[derive(Debug)]
+pub struct NavyPath {
+    #[brw(args("Navy Path"))]
+    version: Version<0>,
+    path_base: PathBase,
+}
+
+#[binrw]
+#[derive(Debug)]
 struct PathBase {
     #[brw(args("Movement Path Base"))]
     version: Version<1>,

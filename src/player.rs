@@ -179,5 +179,5 @@ pub struct Stock {
 struct ShipNames {
     #[brw(args("Player ShipNames"))]
     version: Version<0>,
-    ships: u32,
+    ships: CapedU32<19>,
 }

@@ -22,6 +22,10 @@ mod transport;
 use transport::Transport;
 mod military;
 use military::Military;
+mod navy;
+use navy::Navy;
+
+
 
 fn main() -> Result<()> {
     simple_eyre::install()?;
@@ -113,10 +117,6 @@ struct Random {
     init: Bool,
     state: u64,
 }
-
-#[binrw]
-#[derive(Debug)]
-struct Navy;
 
 #[binrw]
 #[derive(Debug)]
