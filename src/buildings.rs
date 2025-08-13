@@ -1,7 +1,9 @@
 use crate::helper_structs::BuildingType::*;
 use crate::helper_structs::*;
+use crate::navy::Ship;
+use crate::net::{Flag, Street};
 use crate::player::Stock;
-use crate::resources::Deposit;
+use crate::resources::{Animal, Deposit};
 use crate::settlers::{Settler, Worker};
 use binrw::binrw;
 
@@ -30,13 +32,13 @@ pub struct Building {
     workers: Workers,
     deposit_ref: Ref<Deposit>,
     #[brw(if(version.version > 3))]
-    animal_ref: Option<Uuid>,
+    animal_ref: Option<Ref<Animal>>,
     construction: Construction,
     production: Production,
     blocking: Blocking,
     idk3: u32,
     tribe: u32,
-    flag_ref: Uuid, //TODO
+    flag_ref: Ref<Flag>,
     settler_spawn: SettlerSpawn,
     mining_pos: PatternCursor,
     territory_updater: TerritoryUpdater,
@@ -170,7 +172,7 @@ struct Bulldozing {
 
 #[binrw]
 #[derive(Debug)]
-struct OrderContainer {
+pub struct OrderContainer {
     #[brw(args("Order Container"))]
     version: Version<0>,
     orders: Array<Ref<Order>>,
@@ -220,7 +222,7 @@ struct Interceptors {
 
 #[binrw]
 #[derive(Debug)]
-struct SettlersContainer {
+pub struct SettlersContainer {
     #[brw(args("Settlers Container"))]
     version: Version<0>,
     settlers: Array<Ref<Settler>>,
@@ -272,7 +274,7 @@ struct Harbor {
     #[brw(if(version.version > 2))]
     harbor_receivers: Array<HarborReceiver>,
     #[brw(if(version.version > 3))]
-    ship_ref: Option<Uuid>,
+    ship_ref: Option<Ref<Ship>>,
     #[brw(if(version.version > 3))]
     settlers: Option<SettlersContainer>,
     #[brw(if(version.version > 4))]
@@ -287,8 +289,8 @@ struct Harbor {
 struct LandingPosition {
     #[brw(args("Village Landing Position"))]
     version: Version<0>,
-    ship_ref0: Uuid,
-    ship_ref1: Uuid,
+    ship_ref0: Ref<Ship>,
+    ship_ref1: Ref<Ship>,
     pos: PatternCursor,
 }
 
@@ -299,7 +301,7 @@ struct Expedition {
     version: Version<0>,
     expedition_state: u32,
     stock: Stock,
-    ship_ref: Uuid,
+    ship_ref: Ref<Ship>,
     idk: u32,
 }
 
@@ -385,8 +387,8 @@ struct Order {
     #[brw(if(version.version > 0))]
     used: Bool,
     building_ref: Ref<Building>,
-    flag_ref: Uuid,
-    street_ref: Uuid,
+    flag_ref: Ref<Flag>,
+    street_ref: Ref<Street>,
     #[brw(if(version.version > 1))]
     building_ref2: Ref<Building>,
 }

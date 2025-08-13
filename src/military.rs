@@ -1,4 +1,4 @@
-use crate::helper_structs::*;
+use crate::{buildings::Building, helper_structs::*, settlers::Settler};
 use binrw::binrw;
 
 #[binrw]
@@ -57,11 +57,11 @@ struct Fighters {
     version: Version<2>,
     init: Bool,
     #[brw(if(version.version < 1))]
-    settler_ref0: Option<Uuid>,
+    settler_ref0: Option<Ref<Settler>>,
     #[brw(if(version.version < 1))]
-    settler_ref1: Option<Uuid>,
+    settler_ref1: Option<Ref<Settler>>,
     #[brw(if(version.version < 1))]
-    building_ref: Option<Uuid>,
+    building_ref: Option<Ref<Building>>,
     #[brw(if(version.version > 0))]
     fightconnections: Option<FightConnections>,
     idk: u32,
@@ -79,9 +79,9 @@ struct FightConnections {
     #[brw(args("Military FightConnections"))]
     version: Version<0>,
     init: Bool,
-    settler_ref0: Uuid,
-    settler_ref1: Uuid,
-    building_ref: Uuid,
+    settler_ref0: Ref<Settler>,
+    settler_ref1: Ref<Settler>,
+    building_ref: Ref<Building>,
 }
 
 #[binrw]

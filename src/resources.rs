@@ -1,3 +1,4 @@
+use crate::buildings::Building;
 use crate::helper_structs::*;
 use crate::movement::AnimalMovement;
 use binrw::binrw;
@@ -45,7 +46,7 @@ pub struct Deposit {
     version: Version<1>,
     id: Uuid,
     pos: PatternCursor,
-    buildingref: Uuid,
+    buildingref: Ref<Building>,
     pos2: ElevationCursor,
     current_grouth: f32,
     #[brw(if(version.version > 0))]
@@ -74,7 +75,7 @@ pub struct Animal {
     #[brw(if(version.version > 0))]
     idk2: u32,
     #[brw(if(version.version > 1))]
-    villagebuildingref: Uuid,
+    villagebuildingref: Ref<Building>,
 }
 
 impl Ided for Animal {

@@ -1,4 +1,4 @@
-use crate::helper_structs::*;
+use crate::{helper_structs::*, net::Street};
 use binrw::binrw;
 
 #[binrw]
@@ -114,7 +114,7 @@ struct StreetPath {
     idk3: i32,
     pos: PatternCursor,
     path: Array<PatternCursor>,
-    street_ref: Uuid,
+    street_ref: Ref<Street>,
     idk4: Bool,
     idk5: Bool,
 }

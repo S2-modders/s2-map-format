@@ -1,4 +1,4 @@
-use crate::helper_structs::*;
+use crate::{buildings::Building, helper_structs::*, net::Flag, settlers::Settler};
 use binrw::binrw;
 
 #[binrw]
@@ -29,9 +29,9 @@ pub struct Package {
     id: Uuid,
     idk: Bool,
     idk1: Bool,
-    building_ref: Uuid,
-    settler_ref: Uuid,
-    flag_ref: Uuid,
+    building_ref: Ref<Building>,
+    settler_ref: Ref<Settler>,
+    flag_ref: Ref<Flag>,
     good: Good,
     pos: PatternCursor,
     idk2: Bool,
@@ -65,8 +65,8 @@ struct PackageNeeds {
 struct PackageNeedTarget {
     #[brw(args("Transport PackageNeedTarget"))]
     version: Version<0>,
-    package_ref: Uuid,
-    building_ref: Uuid,
+    package_ref: Ref<Package>,
+    building_ref: Ref<Building>,
 }
 
 #[binrw]
@@ -83,10 +83,10 @@ struct BuildingNeeds {
 struct BuildingNeedGood {
     #[brw(args("Transport BuildingNeedGood"))]
     version: Version<1>,
-    building_ref: Uuid,
+    building_ref: Ref<Building>,
     good: Good,
-    package_ref: Uuid,
+    package_ref: Ref<Package>,
     idk: u32,
     #[brw(if(version.version > 0))]
-    building_ref2: Uuid,
+    building_ref2: Ref<Building>,
 }

@@ -81,7 +81,7 @@ pub struct Trigger {
     #[brw(args("TriggerObject"))]
     version: Version<1>,
     init: Bool,
-    uuid: Uuid,
+    id: Uuid,
     trigger_type: TriggerType,
     pos: PatternCursor,
     idk: u32,
@@ -113,7 +113,7 @@ impl Trigger {
         Trigger {
             version: Version::new::<1>(),
             init: true.into(),
-            uuid: Uuid::new(logic),
+            id: Uuid::new(logic),
             active: true.into(),
             time: 0.0,
             trigger_type,

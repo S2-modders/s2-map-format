@@ -1,6 +1,7 @@
 use crate::buildings::Building;
 use crate::helper_structs::*;
 use crate::movement::SettlerMovement;
+use crate::transport::Package;
 use binrw::binrw;
 
 #[binrw]
@@ -40,7 +41,7 @@ pub struct Constructor {
     #[brw(args("SettlersConstructor"))]
     version: Version<0>,
     test: [u32; 6], //TODO: filler -- decompiling goals takes too long
-    work_building_ref: Uuid,
+    work_building_ref: Ref<Building>,
     settler: Settler,
 }
 
@@ -57,7 +58,7 @@ pub struct Carrier {
     version: Version<0>,
     test: [u32; 9], //TODO: filler -- decompiling goals takes too long
     idk: Bool,
-    package_ref: Uuid,
+    package_ref: Ref<Package>,
     settler: Settler,
 }
 
@@ -73,7 +74,7 @@ pub struct Bulldozer {
     #[brw(args("SettlersBulldozer"))]
     version: Version<0>,
     test: [u32; 2], //TODO: filler -- decompiling goals takes too long
-    building_ref: Uuid,
+    building_ref: Ref<Building>,
     settler: Settler,
 }
 
@@ -89,9 +90,9 @@ pub struct Soldier {
     #[brw(args("SettlersSoldier"))]
     version: Version<3>,
     test: [u32; 2], //TODO: filler -- decompiling goals takes too long
-    building_ref: Uuid,
-    building_ref2: Uuid,
-    settler_ref: Uuid,
+    building_ref: Ref<Building>,
+    building_ref2: Ref<Building>,
+    settler_ref: Ref<Settler>,
     test0: [u32; 10], //TODO: filler -- decompiling goals takes too long; version dependent
     #[br(if(version.version > 1))]
     building_ref3: Option<Uuid>,
