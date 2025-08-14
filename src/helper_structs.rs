@@ -352,7 +352,6 @@ pub enum RemainsType {
 #[repr(u32)]
 #[derive(Debug)]
 pub enum DepositType {
-    // None = u32::MAX,
     Tree01 = 0x7e99ce73,
     Tree02 = 0x063287b3,
     Tree03 = 0x489ccb83,
@@ -389,6 +388,7 @@ pub enum DepositType {
 #[repr(u32)]
 #[derive(Debug)]
 pub enum BuildingType {
+    Empty = u32::MAX, //TODO: requered for Ai constructon order
     Castle = 0xf6e26cb3,
     WoodCutter = 0x5a926fa3,
     Forester = 0x3ff43d23,
@@ -580,10 +580,10 @@ pub struct InnerVersion<const MAX_VER: u32, const CRC: u32, const LEN: u32> {
     #[br(try_map = |x: u32| x.try_into())]
     #[bw(map = |x| x.get())]
     pub version: BoundedU32<0, MAX_VER>,
-    #[br(assert(hash == CRC))]
     #[bw(calc = CRC)]
     hash: u32,
-    #[br(assert(len == LEN))]
+    #[br(assert(len == LEN, "version name length mismatch: expected {LEN}, found {len}"))]
+    #[br(assert(hash == CRC))]
     #[bw(calc = LEN)]
     len: u32,
 }
