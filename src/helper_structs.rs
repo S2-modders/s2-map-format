@@ -321,6 +321,26 @@ pub enum PatternType {
 #[brw(repr = u32)]
 #[repr(u32)]
 #[derive(Debug)]
+pub enum AmbientType {
+    Beach = 0x5bdc4873,
+    Desert1 = 0xdf5602f3,
+    Desert2 = 0x67ef3d13,
+    Desert3 = 0x31f23a23,
+    Forest1 = 0x89f59a23,
+    Forest2 = 0x118e5363,
+    Meadow1 = 0x5aaad2d3,
+    Meadow2 = 0x623437d3,
+    Water1 = 0xf35757d3,
+    Water2 = 0x3b68a763,
+    Water3 = 0x00a67113,
+    Water4 = 0x875d51f3,
+    Lava = 0xa952bba3,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[repr(u32)]
+#[derive(Debug)]
 pub enum RemainsType {
     Small = 0xd862d443,
     Medium = 0x122489b3,

@@ -82,14 +82,7 @@ struct MapFile {
 struct Ambients {
     version: Version!(0, "Logic Ambients"),
     init: Bool,
-    ambients: Array<Ambient>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct Ambient {
-    idk: u32,
-    pos: PatternCursor,
+    ambients: Array<(AmbientType, PatternCursor)>,
 }
 
 #[binrw]
