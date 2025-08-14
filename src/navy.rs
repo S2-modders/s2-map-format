@@ -1,3 +1,4 @@
+use crate::Version;
 use crate::helper_structs::*;
 use crate::{buildings::Building, movement::NavyPath, player::Stock};
 use binrw::binrw;
@@ -5,8 +6,7 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Navy {
-    #[brw(args("Navy System"))]
-    version: Version<2>, //TODO: why 2?
+    version: Version!(2, "Navy System"),
     init: Bool,
     ships: Array<(PlayerId, Ship)>,
 }
@@ -14,8 +14,7 @@ pub struct Navy {
 #[binrw]
 #[derive(Debug)]
 pub struct Ship {
-    #[brw(args("Navy Ship"))]
-    version: Version<3>,
+    version: Version!(3, "Navy Ship"),
     id: Uuid,
     construction: Construction,
     path: NavyPath,
@@ -41,8 +40,7 @@ impl Ided for Ship {
 #[binrw]
 #[derive(Debug)]
 struct Construction {
-    #[brw(args("NavyConstruction"))]
-    version: Version<1>,
+    version: Version!(1, "NavyConstruction"),
     progress: f32,
     frame_progress: f32,
     pos: PatternCursor,
@@ -51,8 +49,7 @@ struct Construction {
 #[binrw]
 #[derive(Debug)]
 struct Expedition {
-    #[brw(args("Navy Expedtion"))]
-    version: Version<0>,
+    version: Version!(0, "Navy Expedtion"),
     building_ref: Ref<Building>,
     pos: PatternCursor,
     idk: Bool,
@@ -62,8 +59,7 @@ struct Expedition {
 #[binrw]
 #[derive(Debug)]
 struct ShipReceiver {
-    #[brw(args("Navy ShipReceiver"))]
-    version: Version<0>,
+    version: Version!(0, "Navy ShipReceiver"),
     receivers: Array<(Good, BuildingType)>,
     building_ref: Ref<Building>,
 }

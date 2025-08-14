@@ -1,3 +1,5 @@
+use crate::Version;
+
 use crate::helper_structs::*;
 use binrw::binrw;
 use strum::*;
@@ -5,27 +7,24 @@ use strum::*;
 #[binrw]
 #[derive(Debug)]
 pub struct Players {
-    #[brw(args("PlayerSystem"))]
-    version: Version<0>,
+    version: Version!(0, "PlayerSystem"),
     init: Bool,
-    players: [OptionalPlayer; PlayerId::COUNT],
+    pub players: [OptionalPlayer; PlayerId::COUNT],
 }
 
 #[binrw]
 #[derive(Debug)]
-struct OptionalPlayer {
-    tmp: i32,
-    #[br(if(tmp != -1))]
-    #[bw(if(*tmp != -1))]
-    player: Option<Player>,
+pub struct OptionalPlayer {
+    tmp: OptionPlayerId,
+    #[brw(if(tmp.is_some()))]
+    pub player: Option<Player>,
 }
 
 #[binrw]
 #[derive(Debug)]
-struct Player {
-    #[brw(args("PlayerObject"))]
-    version: Version<5>,
-    init: Bool,
+pub struct Player {
+    version: Version!(5, "PlayerObject"),
+    pub init: Bool,
     name: Str,
     id: PlayerId,
     idk: u32,
@@ -53,8 +52,7 @@ struct Player {
 #[binrw]
 #[derive(Debug)]
 struct LockSmith {
-    #[brw(args("PlayerLocksmith"))]
-    version: Version<1>,
+    version: Version!(1, "PlayerLocksmith"),
     settings: [(f32, f32); 12],
     #[brw(if(version.version > 0))]
     idk: u32,
@@ -63,8 +61,7 @@ struct LockSmith {
 #[binrw]
 #[derive(Debug)]
 struct GoodPriorities {
-    #[brw(args("Good Priorities"))]
-    version: Version<0>,
+    version: Version!(0, "Good Priorities"),
     init: Bool,
     settings: Array<GoodPriority>,
 }
@@ -72,8 +69,7 @@ struct GoodPriorities {
 #[binrw]
 #[derive(Debug)]
 struct GoodPriority {
-    #[brw(args("Good Priority"))]
-    version: Version<0>,
+    version: Version!(0, "Good Priority"),
     idk: u32,
     idk2: u32,
 }
@@ -81,8 +77,7 @@ struct GoodPriority {
 #[binrw]
 #[derive(Debug)]
 struct GoodArrangement {
-    #[brw(args("Good Arrangement"))]
-    version: Version<0>,
+    version: Version!(0, "Good Arrangement"),
     init: Bool,
     arrangementgroups: Array<GoodArrangementGroup>,
 }
@@ -90,8 +85,7 @@ struct GoodArrangement {
 #[binrw]
 #[derive(Debug)]
 struct GoodArrangementGroup {
-    #[brw(args("Player GoodArrangementGroup"))]
-    version: Version<0>,
+    version: Version!(0, "Player GoodArrangementGroup"),
     init: Bool,
     base_arrangement: ArrangementBase,
     good: Good,
@@ -100,16 +94,14 @@ struct GoodArrangementGroup {
 #[binrw]
 #[derive(Debug)]
 struct ArrangementBase {
-    #[brw(args("Player ArrangementBase"))]
-    version: Version<0>,
+    version: Version!(0, "Player ArrangementBase"),
     arrangements: Array<ArrangementObject>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct ArrangementObject {
-    #[brw(args("Player ArrangementObject"))]
-    version: Version<0>,
+    version: Version!(0, "Player ArrangementObject"),
     percentage: f32,
     idk: f32,
     obj_type: u32,
@@ -118,8 +110,7 @@ struct ArrangementObject {
 #[binrw]
 #[derive(Debug)]
 struct PlayerMilitary {
-    #[brw(args("Player Military"))]
-    version: Version<0>,
+    version: Version!(0, "Player Military"),
     idk0: f32,
     idk1: f32,
     idk2: f32,
@@ -132,16 +123,14 @@ struct PlayerMilitary {
 #[binrw]
 #[derive(Debug)]
 struct Messages {
-    #[brw(args("Messages"))]
-    version: Version<0>,
+    version: Version!(0, "Messages"),
     messages: Array<Message>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Message {
-    #[brw(args("Message"))]
-    version: Version<2>,
+    version: Version!(2, "Message"),
     idk: f32,
     pos: PatternCursor,
     msg: Str,
@@ -159,16 +148,14 @@ struct Message {
 #[binrw]
 #[derive(Debug)]
 struct MsgId {
-    #[brw(args("uniqueId"))]
-    version: Version<0>,
+    version: Version!(0, "uniqueId"),
     id: u64,
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct Stock {
-    #[brw(args("Stock"))]
-    version: Version<0>,
+    version: Version!(0, "Stock"),
     init: Bool,
     idk: u32,
     map: Array<(Good, u32)>,
@@ -177,7 +164,6 @@ pub struct Stock {
 #[binrw]
 #[derive(Debug)]
 struct ShipNames {
-    #[brw(args("Player ShipNames"))]
-    version: Version<0>,
+    version: Version!(0, "Player ShipNames"),
     ships: CapedU32<19>,
 }

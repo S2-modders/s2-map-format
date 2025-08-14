@@ -1,3 +1,5 @@
+use crate::Version;
+
 use crate::buildings::Building;
 use crate::helper_structs::*;
 use crate::movement::SettlerMovement;
@@ -7,8 +9,7 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Settlers {
-    #[brw(args("SettlersSystem"))]
-    version: Version<0>,
+    version: Version!(0, "SettlersSystem"),
     init: Bool,
     workers: Array<(PlayerId, Worker)>,
     constructor: Array<(PlayerId, Constructor)>,
@@ -21,8 +22,7 @@ pub struct Settlers {
 #[binrw]
 #[derive(Debug)]
 pub struct Worker {
-    #[brw(args("SettlersWorker"))]
-    version: Version<1>,
+    version: Version!(1, "SettlersWorker"),
     work_building_ref: Uuid,
     ship_ref: Uuid,
     test: [u32; 59], //TODO: filler -- decompiling goals takes too long; version 0 has less goals
@@ -38,8 +38,7 @@ impl Ided for Worker {
 #[binrw]
 #[derive(Debug)]
 pub struct Constructor {
-    #[brw(args("SettlersConstructor"))]
-    version: Version<0>,
+    version: Version!(0, "SettlersConstructor"),
     test: [u32; 6], //TODO: filler -- decompiling goals takes too long
     work_building_ref: Ref<Building>,
     settler: Settler,
@@ -54,8 +53,7 @@ impl Ided for Constructor {
 #[binrw]
 #[derive(Debug)]
 pub struct Carrier {
-    #[brw(args("SettlersCarrier"))]
-    version: Version<0>,
+    version: Version!(0, "SettlersCarrier"),
     test: [u32; 9], //TODO: filler -- decompiling goals takes too long
     idk: Bool,
     package_ref: Ref<Package>,
@@ -71,8 +69,7 @@ impl Ided for Carrier {
 #[binrw]
 #[derive(Debug)]
 pub struct Bulldozer {
-    #[brw(args("SettlersBulldozer"))]
-    version: Version<0>,
+    version: Version!(0, "SettlersBulldozer"),
     test: [u32; 2], //TODO: filler -- decompiling goals takes too long
     building_ref: Ref<Building>,
     settler: Settler,
@@ -87,8 +84,7 @@ impl Ided for Bulldozer {
 #[binrw]
 #[derive(Debug)]
 pub struct Soldier {
-    #[brw(args("SettlersSoldier"))]
-    version: Version<3>,
+    version: Version!(3, "SettlersSoldier"),
     test: [u32; 2], //TODO: filler -- decompiling goals takes too long
     building_ref: Ref<Building>,
     building_ref2: Ref<Building>,
@@ -111,8 +107,7 @@ impl Ided for Soldier {
 #[binrw]
 #[derive(Debug)]
 struct LivePoints {
-    #[brw(args("SettlersLivePoints"))]
-    version: Version<0>,
+    version: Version!(0, "SettlersLivePoints"),
     idk: f32,
     idk2: u32,
 }
@@ -120,8 +115,7 @@ struct LivePoints {
 #[binrw]
 #[derive(Debug)]
 pub struct Specialist {
-    #[brw(args("SettlersSpecialist"))]
-    version: Version<0>,
+    version: Version!(0, "SettlersSpecialist"),
     #[br(dbg)]
     test: [u32; 20], //TODO: filler -- decompiling goals takes too long -- not tested if right size
     idk: u32,
@@ -138,8 +132,7 @@ impl Ided for Specialist {
 #[binrw]
 #[derive(Debug)]
 pub struct Settler {
-    #[brw(args("Settlers Settler"))]
-    version: Version<0>,
+    version: Version!(0, "Settlers Settler"),
     id: Uuid,
     movement: SettlerMovement,
     animation: Animation,
@@ -159,8 +152,7 @@ impl Ided for Settler {
 #[binrw]
 #[derive(Debug)]
 struct Animation {
-    #[brw(args("SettlersAnimation"))]
-    version: Version<1>,
+    version: Version!(1, "SettlersAnimation"),
     remaining_time: f32,
     #[brw(if(version.version == 1))]
     end_time: Option<f32>,

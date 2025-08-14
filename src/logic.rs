@@ -1,3 +1,4 @@
+use crate::Version;
 use crate::helper_structs::*;
 use binrw::binrw;
 use strum::*;
@@ -6,10 +7,9 @@ use strum::*;
 #[derive(Debug)]
 pub struct Logic {
     pub mapinfo: MapInfo,
-    #[brw(args("LogicSystem"))]
-    pub version: Version<7>,
+    pub version: Version!(7, "LogicSystem"),
     pub max_id: i64,
-    pub initialized: Bool,
+    pub init: Bool,
     #[brw(if(version.version > 0 && version.version < 6))]
     pub unused: u32,
     #[brw(if(version.version > 3))]
@@ -27,8 +27,7 @@ pub struct Logic {
 #[binrw]
 #[derive(Debug)]
 pub struct MapInfo {
-    #[brw(args("MapInfo"))]
-    pub version: Version<9>,
+    pub version: Version!(9, "MapInfo"),
     pub idk: Array<PatternCursor>,
     pub map_name: Str,
     #[brw(if(version.version > 1))]
@@ -39,13 +38,13 @@ pub struct MapInfo {
     #[brw(if(version.version > 2 && version.version < 6))]
     pub idk3: [(u32, u32, u32); PlayerId::COUNT],
     #[brw(if(version.version > 5))]
-    pub idk3_2: [(u32, u32, u32, u32); PlayerId::COUNT],
+    pub idk3_2: Option<[(u32, PlayerId, i32, u32); PlayerId::COUNT]>,
     #[brw(if(version.version > 0))]
-    pub mission_target_type: Option<u32>,
+    pub mission_target_type: MissionTarget,
     #[brw(if(version.version > 3))]
     pub idk4: u32,
     #[brw(if(version.version > 4))]
-    pub file_type: u32,
+    pub file_type: FileType,
     #[brw(if(version.version > 6))]
     pub id: Option<CoreUuid>,
     #[brw(if(version.version > 7))]
@@ -58,8 +57,20 @@ pub struct MapInfo {
 
 #[binrw]
 #[brw(repr = u32)]
-#[derive(Debug)]
+#[derive(Debug, Default, PartialEq, Eq)]
+pub enum FileType {
+    #[default]
+    None = 0,
+    SaveGame = 1,
+    Map = 10,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[derive(Debug, Default)]
 pub enum MissionTarget {
+    #[default]
+    None = 0,
     DestroyAllEnemies = 1,
     ConquerTheMap = 2,
     ProduceCoins = 3,
@@ -69,8 +80,7 @@ pub enum MissionTarget {
 #[binrw]
 #[derive(Debug)]
 pub struct TriggerSys {
-    #[brw(args("TriggerSystem"))]
-    pub version: Version<0>,
+    pub version: Version!(0, "TriggerSystem"),
     pub init: Bool,
     pub triggers: Array<Trigger>,
 }
@@ -78,8 +88,7 @@ pub struct TriggerSys {
 #[binrw]
 #[derive(Debug)]
 pub struct Trigger {
-    #[brw(args("TriggerObject"))]
-    version: Version<1>,
+    version: Version!(1, "TriggerObject"),
     init: Bool,
     id: Uuid,
     trigger_type: TriggerType,
@@ -111,7 +120,7 @@ impl Trigger {
         player_id: PlayerId,
     ) -> Trigger {
         Trigger {
-            version: Version::new::<1>(),
+            version: <Version!(1, "TriggerObject")>::new::<1>(),
             init: true.into(),
             id: Uuid::new(logic),
             active: true.into(),

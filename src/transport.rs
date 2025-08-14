@@ -1,11 +1,12 @@
+use crate::Version;
+
 use crate::{buildings::Building, helper_structs::*, net::Flag, settlers::Settler};
 use binrw::binrw;
 
 #[binrw]
 #[derive(Debug)]
 pub struct Transport {
-    #[brw(args("Transport System"))]
-    version: Version<0>,
+    version: Version!(0, "Transport System"),
     init: Bool,
     packages: Packages,
     package_needs: PackageNeeds,
@@ -15,8 +16,7 @@ pub struct Transport {
 #[binrw]
 #[derive(Debug)]
 struct Packages {
-    #[brw(args("Package System"))]
-    version: Version<0>,
+    version: Version!(0, "Package System"),
     init: Bool,
     package: Array<(PlayerId, Package)>,
 }
@@ -24,8 +24,7 @@ struct Packages {
 #[binrw]
 #[derive(Debug)]
 pub struct Package {
-    #[brw(args("Transport Package"))]
-    version: Version<1>,
+    version: Version!(1, "Transport Package"),
     id: Uuid,
     idk: Bool,
     idk1: Bool,
@@ -54,8 +53,7 @@ impl Ided for Package {
 #[binrw]
 #[derive(Debug)]
 struct PackageNeeds {
-    #[brw(args("Transport PackageNeedSystem"))]
-    version: Version<0>,
+    version: Version!(0, "Transport PackageNeedSystem"),
     init: Bool,
     package: Array<PackageNeedTarget>,
 }
@@ -63,8 +61,7 @@ struct PackageNeeds {
 #[binrw]
 #[derive(Debug)]
 struct PackageNeedTarget {
-    #[brw(args("Transport PackageNeedTarget"))]
-    version: Version<0>,
+    version: Version!(0, "Transport PackageNeedTarget"),
     package_ref: Ref<Package>,
     building_ref: Ref<Building>,
 }
@@ -72,8 +69,7 @@ struct PackageNeedTarget {
 #[binrw]
 #[derive(Debug)]
 struct BuildingNeeds {
-    #[brw(args("Transport BuildingNeedSystem"))]
-    version: Version<0>,
+    version: Version!(0, "Transport BuildingNeedSystem"),
     init: Bool,
     building_need_goods: Array<BuildingNeedGood>,
 }
@@ -81,8 +77,7 @@ struct BuildingNeeds {
 #[binrw]
 #[derive(Debug)]
 struct BuildingNeedGood {
-    #[brw(args("Transport BuildingNeedGood"))]
-    version: Version<1>,
+    version: Version!(1, "Transport BuildingNeedGood"),
     building_ref: Ref<Building>,
     good: Good,
     package_ref: Ref<Package>,

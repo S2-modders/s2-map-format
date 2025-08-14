@@ -27,6 +27,10 @@ mod navy;
 use navy::Navy;
 mod net;
 use net::NetSys;
+mod ai;
+use ai::Ai;
+
+use crate::logic::FileType;
 
 fn main() -> Result<()> {
     simple_eyre::install()?;
@@ -54,7 +58,7 @@ fn main() -> Result<()> {
             // .write_args(&mut BufWriter::new(&mut File::open(s)?), (s,))?;
             let remaining = &reader.get_ref()[reader.position() as usize..];
             println!("remaining: {}", remaining.len());
-            println!("type: {}", map.logic.mapinfo.file_type);
+            println!("type: {:?}", map.logic.mapinfo.file_type);
             println!("{:?}/{:?}", reader.position(), reader.get_ref().len());
             println!("remaining bytes (50): {:?}", &remaining[..50]);
             Ok(())
@@ -70,15 +74,13 @@ struct MapFile {
     resources: Resources,
     doodads: Doodads,
     ambients: Ambients,
-    #[brw(if(logic.mapinfo.file_type == 20 || logic.mapinfo.file_type == 1))]
+    #[brw(if( logic.mapinfo.file_type == FileType::SaveGame))]
     gamefilelogic: Option<GameFileLogic>,
 }
-
 #[binrw]
 #[derive(Debug)]
 struct Ambients {
-    #[brw(args("Logic Ambients"))]
-    version: Version<0>,
+    version: Version!(0, "Logic Ambients"),
     init: Bool,
     ambients: Array<Ambient>,
 }
@@ -93,8 +95,7 @@ struct Ambient {
 #[binrw]
 #[derive(Debug)]
 struct GameFileLogic {
-    #[brw(args("Game File Logic"))]
-    version: Version<2>,
+    version: Version!(2, "Game File Logic"),
     #[brw(if(version.version > 0))]
     random: Option<Random>,
     players: Players,
@@ -104,6 +105,7 @@ struct GameFileLogic {
     military: Military,
     navy: Navy,
     netsys: NetSys,
+    #[brw(args(&players.players))]
     ai: Ai,
     stats: Stats,
     #[brw(if(version.version > 1))]
@@ -113,21 +115,15 @@ struct GameFileLogic {
 #[binrw]
 #[derive(Debug)]
 struct Random {
-    #[brw(args("Logic Random"))]
-    version: Version<0>,
+    version: Version!(0, "Logic Random"),
     init: Bool,
     state: u64,
 }
 
 #[binrw]
 #[derive(Debug)]
-struct Ai;
-
-#[binrw]
-#[derive(Debug)]
 struct Stats {
-    #[brw(args("LogicStatistics"))]
-    version: Version<0>,
+    version: Version!(0, "LogicStatistics"),
     idk: u32,
     stats: Array<(Uuid, u32, f32, u32)>,
     player_stats: [PlayerStats; PlayerId::COUNT],
@@ -136,8 +132,7 @@ struct Stats {
 #[binrw]
 #[derive(Debug)]
 struct PlayerStats {
-    #[brw(args("LogicPlayerStatistics"))]
-    version: Version<2>,
+    version: Version!(2, "LogicPlayerStatistics"),
     stats: [Array<u32>; PlayerId::COUNT],
     stats2: [Array<u32>; 14],
     idk: u32,
@@ -150,8 +145,7 @@ struct PlayerStats {
 #[binrw]
 #[derive(Debug)]
 struct GameScript {
-    #[brw(args("GameScript"))]
-    version: Version<0>,
+    version: Version!(0, "GameScript"),
     idk: Bool,
     map_name: Str,
     persistent: Array<(Str, u32)>,

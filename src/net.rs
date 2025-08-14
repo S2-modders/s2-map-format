@@ -1,3 +1,5 @@
+use crate::Version;
+
 use crate::helper_structs::*;
 use crate::{
     buildings::{Building, OrderContainer, SettlersContainer},
@@ -10,19 +12,17 @@ use strum::EnumCount;
 #[binrw]
 #[derive(Debug)]
 pub struct NetSys {
-    #[brw(args("Net System"))]
-    version: Version<1>,
+    version: Version!(2, "Net System"), //TODO why version 2?
     init: Bool,
     flags: Array<(PlayerId, Flag)>,
     streets: Array<Street>,
-    idk: [Array<Idk>; PlayerId::COUNT],
+    idk: [[Array<Idk>; 3]; PlayerId::COUNT],
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct Flag {
-    #[brw(args("Flag"))]
-    version: Version<1>, //TODO: idk why
+    version: Version!(1, "Flag"), //TODO: idk why
     building_ref: Ref<Building>,
     id: Uuid,
     pos: PatternCursor,
@@ -43,8 +43,7 @@ impl Ided for Flag {
 #[binrw]
 #[derive(Debug)]
 struct FlagLink {
-    #[brw(args("Net FlagLink"))]
-    version: Version<0>,
+    version: Version!(0, "Net FlagLink"),
     flag_ref: Ref<Flag>,
     street_ref: Ref<Street>,
 }
@@ -52,8 +51,7 @@ struct FlagLink {
 #[binrw]
 #[derive(Debug)]
 struct PackageContainer {
-    #[brw(args("Package Container"))]
-    version: Version<0>,
+    version: Version!(0, "Package Container"),
     init: Bool,
     packages: Array<Ref<Package>>,
 }
@@ -61,8 +59,7 @@ struct PackageContainer {
 #[binrw]
 #[derive(Debug)]
 struct Specialist {
-    #[brw(args("Net Specialist"))]
-    version: Version<0>,
+    version: Version!(0, "Net Specialist"),
     settlers: SettlersContainer,
 }
 
@@ -71,8 +68,7 @@ struct Specialist {
 pub struct Street {
     owner: PlayerId,
     #[brw(magic = 0x43d79823u32)]
-    #[brw(args("NetStreet"))]
-    version: Version<1>,// TODO: why?
+    version: Version!(1, "NetStreet"), // TODO: why?
     id: Uuid,
     poses: Array<PatternCursor>,
     segments: u32,
@@ -99,8 +95,7 @@ impl Ided for Street {
 #[binrw]
 #[derive(Debug)]
 struct MapUpdater {
-    #[brw(args("Net Street Map Updater"))]
-    version: Version<0>,
+    version: Version!(0, "Net Street Map Updater"),
 }
 
 #[binrw]

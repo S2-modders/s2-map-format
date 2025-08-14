@@ -1,3 +1,4 @@
+use crate::Version;
 use crate::helper_structs::BuildingType::*;
 use crate::helper_structs::*;
 use crate::navy::Ship;
@@ -10,8 +11,7 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Villages {
-    #[brw(args("VillageSystem"))]
-    version: Version<0>,
+    version: Version!(0, "VillageSystem"),
     init: Bool,
     buildings: Array<Building>,
     remains: Array<Remains>,
@@ -23,8 +23,7 @@ pub struct Villages {
 pub struct Building {
     building_type: BuildingType,
     owner: PlayerId,
-    #[brw(args("VillageBuilding"))]
-    version: Version<7>,
+    version: Version!(7, "VillageBuilding"),
     id: Uuid,
     pos: PatternCursor,
     ticker: Ticker,
@@ -69,8 +68,7 @@ impl Ided for Building {
 #[binrw]
 #[derive(Debug)]
 struct Ticker {
-    #[brw(args("ticker"))]
-    version: Version<0>,
+    version: Version!(0, "ticker"),
     curr_tick: u32,
     target_tick: u32,
 }
@@ -78,8 +76,7 @@ struct Ticker {
 #[binrw]
 #[derive(Debug)]
 struct Depot {
-    #[brw(args("VillageDepot"))]
-    version: Version<0>,
+    version: Version!(0, "VillageDepot"),
     stock1: Stock,
     stock2: Stock,
     needed_goods: NeededGoods,
@@ -89,8 +86,7 @@ struct Depot {
 #[binrw]
 #[derive(Debug)]
 struct NeededGoods {
-    #[brw(args("Need Good System"))]
-    version: Version<0>,
+    version: Version!(0, "Need Good System"),
     needed_goods: Array<Package>,
 }
 
@@ -104,24 +100,21 @@ struct Package {
 #[binrw]
 #[derive(Debug)]
 struct ReturningGoods {
-    #[brw(args("Returning Good System"))]
-    version: Version<0>,
+    version: Version!(0, "Returning Good System"),
     returning_goods: Array<Ref<crate::transport::Package>>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Workers {
-    #[brw(args("VillageWorkers"))]
-    version: Version<0>,
+    version: Version!(0, "VillageWorkers"),
     workers: Array<Ref<Worker>>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Construction {
-    #[brw(args("VillageConstruction"))]
-    version: Version<2>,
+    version: Version!(2, "VillageConstruction"),
     progress: f32,
     progress_start_idk: f32,
     settler_ref: Ref<Settler>,
@@ -134,8 +127,7 @@ struct Construction {
 #[binrw]
 #[derive(Debug)]
 struct Production {
-    #[brw(args("VillageProduction"))]
-    version: Version<1>,
+    version: Version!(1, "VillageProduction"),
     init: Bool,
     idk: u32,
     #[brw(if(version.version > 0))]
@@ -145,24 +137,21 @@ struct Production {
 #[binrw]
 #[derive(Debug)]
 struct SettlerSpawn {
-    #[brw(args("Village SettlerSpawn"))]
-    version: Version<0>,
+    version: Version!(0, "Village SettlerSpawn"),
     idk: u32,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct TerritoryUpdater {
-    #[brw(args("Village Territory Updater"))]
-    version: Version<0>,
+    version: Version!(0, "Village Territory Updater"),
     init: Bool,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Bulldozing {
-    #[brw(args("VillageBulldozing"))]
-    version: Version<1>,
+    version: Version!(1, "VillageBulldozing"),
     progress: f32,
     settler_ref: Ref<Settler>,
     idk: u32,
@@ -173,16 +162,14 @@ struct Bulldozing {
 #[binrw]
 #[derive(Debug)]
 pub struct OrderContainer {
-    #[brw(args("Order Container"))]
-    version: Version<0>,
+    version: Version!(0, "Order Container"),
     orders: Array<Ref<Order>>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct VillageMilitary {
-    #[brw(args("Village Military"))]
-    version: Version<2>,
+    version: Version!(2, "Village Military"),
     soldiers: Soldiers,
     attackers: Attackers,
     enemy_distance: u32,
@@ -199,56 +186,49 @@ struct VillageMilitary {
 #[binrw]
 #[derive(Debug)]
 struct Soldiers {
-    #[brw(args("VillageSoldiers"))]
-    version: Version<0>,
+    version: Version!(0, "VillageSoldiers"),
     settlers: SettlersContainer,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Attackers {
-    #[brw(args("Village Attackers"))]
-    version: Version<0>,
+    version: Version!(0, "Village Attackers"),
     settlers: SettlersContainer,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Interceptors {
-    #[brw(args("Village Interceptors"))]
-    version: Version<0>,
+    version: Version!(0, "Village Interceptors"),
     settlers: SettlersContainer,
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct SettlersContainer {
-    #[brw(args("Settlers Container"))]
-    version: Version<0>,
+    version: Version!(0, "Settlers Container"),
     settlers: Array<Ref<Settler>>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct CarrierRefresh {
-    #[brw(args("Village CarrierRefresh"))]
-    version: Version<0>,
+    version: Version!(0, "Village CarrierRefresh"),
     idk: u32,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct GoodFlags {
-    #[brw(args("VillageGoodFlags"))]
-    version: Version<0>,
+    version: Version!(0, "VillageGoodFlags"),
     flags: Array<(Good, u32, u32)>, // lock, evict
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Catapult {
-    #[brw(args("Village Catapult"))]
-    version: Version<0>,
+    version: Version!(0, "Village Catapult"),
     target: PatternCursor,
     target_radomized: PatternCursor,
     time_next_direction_set: f32,
@@ -260,8 +240,7 @@ struct Catapult {
 #[binrw]
 #[derive(Debug)]
 struct Harbor {
-    #[brw(args("Village Harbor"))]
-    version: Version<6>,
+    version: Version!(6, "Village Harbor"),
     #[brw(if(version.version < 6, Bool { bool: true }))]
     init: Bool,
     landing_positions: Array<LandingPosition>,
@@ -287,8 +266,7 @@ struct Harbor {
 #[binrw]
 #[derive(Debug)]
 struct LandingPosition {
-    #[brw(args("Village Landing Position"))]
-    version: Version<0>,
+    version: Version!(0, "Village Landing Position"),
     ship_ref0: Ref<Ship>,
     ship_ref1: Ref<Ship>,
     pos: PatternCursor,
@@ -297,8 +275,7 @@ struct LandingPosition {
 #[binrw]
 #[derive(Debug)]
 struct Expedition {
-    #[brw(args("Village Expedition"))]
-    version: Version<0>,
+    version: Version!(0, "Village Expedition"),
     expedition_state: u32,
     stock: Stock,
     ship_ref: Ref<Ship>,
@@ -308,8 +285,7 @@ struct Expedition {
 #[binrw]
 #[derive(Debug)]
 struct HarborReceiver {
-    #[brw(args("Village HarborReceiver"))]
-    version: Version<0>,
+    version: Version!(0, "Village HarborReceiver"),
     idk: u32,
     building_ref: Ref<Building>,
 }
@@ -317,15 +293,13 @@ struct HarborReceiver {
 #[binrw]
 #[derive(Debug)]
 struct NeedsTransfer {
-    #[brw(args("Village HarboarNeedsTransfer"))]
-    version: Version<0>,
+    version: Version!(0, "Village HarboarNeedsTransfer"),
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Upgrade {
-    #[brw(args("VillageUpgrade"))]
-    version: Version<0>,
+    version: Version!(0, "VillageUpgrade"),
     init: Bool,
     #[brw(if(init.bool))]
     idk: u32,
@@ -340,8 +314,7 @@ struct Upgrade {
 struct Remains {
     remains_type: RemainsType, //maybe in wrong order
     building_type: BuildingType,
-    #[brw(args("VillageRemains"))]
-    version: Version<1>,
+    version: Version!(1, "VillageRemains"),
     init: Bool,
     pos: PatternCursor,
     someproperty: u32,
@@ -353,8 +326,7 @@ struct Remains {
 #[binrw]
 #[derive(Debug)]
 struct Blocking {
-    #[brw(args("Blocking"))]
-    version: Version<0>,
+    version: Version!(0, "Blocking"),
     init: Bool,
     pos: PatternCursor,
     size: u32,
@@ -363,8 +335,7 @@ struct Blocking {
 #[binrw]
 #[derive(Debug)]
 struct Orders {
-    #[brw(args("Order System"))]
-    version: Version<2>,
+    version: Version!(2, "Order System"),
     init: Bool,
     orders: Array<Order>,
     #[brw(if(version.version == 0))]
@@ -378,8 +349,7 @@ struct Orders {
 #[binrw]
 #[derive(Debug)]
 struct Order {
-    #[brw(args("Village Order"))]
-    version: Version<3>,
+    version: Version!(3, "Village Order"),
     id: Uuid,
     #[brw(if(version.version < 3))]
     unused: u32,

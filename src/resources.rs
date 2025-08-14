@@ -1,16 +1,14 @@
 use crate::buildings::Building;
-use crate::helper_structs::*;
 use crate::movement::AnimalMovement;
+use crate::{Version, helper_structs::*};
 use binrw::binrw;
 
 #[binrw]
 #[derive(Debug)]
 pub struct Resources {
-    #[brw(args("resources"))]
-    version: Version<4>,
+    version: Version!(4, "resources"),
     init: Bool,
-    deposits: Array<(u32, Deposit)>,
-
+    deposits: Array<Deposit>,
     #[brw(if(version.version > 0))]
     animals: Array<Animal>,
     #[brw(if(version.version > 2))]
@@ -24,26 +22,18 @@ pub struct Resources {
 #[binrw]
 #[derive(Debug)]
 struct AnimalRespawn {
-    #[brw(args("Resources AnimalRespawn"))]
-    version: Version<0>,
+    version: Version!(0, "Resources AnimalRespawn"),
     init: Bool,
-    tick: u32,
-    inc: u32,
-    pos: UPos, //TODO
-}
-
-#[binrw]
-#[derive(Debug)]
-struct UPos {
-    x: u32,
-    y: u32,
+    tick: CapedU32<999>,
+    tick_increment: u32,
+    pos: LastTickedPos,
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct Deposit {
-    #[brw(args("deposit"))]
-    version: Version<1>,
+    deposit_type: DepositType,
+    version: Version!(1, "deposit"),
     id: Uuid,
     pos: PatternCursor,
     buildingref: Ref<Building>,
@@ -64,14 +54,13 @@ impl Ided for Deposit {
 #[binrw]
 #[derive(Debug)]
 pub struct Animal {
-    mapkey: u32,
-    #[brw(args("Resources Animal"))]
-    version: Version<2>,
+    animal_type: AnimalType,
+    version: Version!(2, "Resources Animal"),
     id: Uuid,
     idk: f32,
     pos: PatternCursor,
     movement: AnimalMovement,
-    idk1: u32,
+    idk1: u32, // 2 = is interpolating movement
     #[brw(if(version.version > 0))]
     idk2: u32,
     #[brw(if(version.version > 1))]
