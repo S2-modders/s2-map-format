@@ -23,7 +23,7 @@ pub struct Villages {
 pub struct Building {
     building_type: BuildingType,
     owner: PlayerId,
-    version: Version!(7, "VillageBuilding"),
+    version: Version!(6, "VillageBuilding"),
     id: Uuid,
     pos: PatternCursor,
     ticker: Ticker,
@@ -45,7 +45,6 @@ pub struct Building {
     order: OrderContainer,
     idk5: Bool,
     #[brw(if(version.version < 6 || matches!(building_type, Castle | Barracks | GuardHouse | Tower | WatchTower | Fortress)))]
-    //military buildings
     military: Option<VillageMilitary>,
     carrier_refresh: CarrierRefresh,
     good_flags: GoodFlags,

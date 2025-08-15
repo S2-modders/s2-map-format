@@ -11,7 +11,7 @@ use strum::*;
 pub struct Ai {
     version: Version!(2, "AI System"),
     init: Bool,
-    #[brw(args(players))]
+    #[brw(args(version.version, players))]
     ai_players: [AiPlayer; PlayerId::COUNT],
     tick: u32,
     resource_map: ResourceMap,
@@ -21,16 +21,18 @@ pub struct Ai {
 
 #[binrw]
 #[derive(Debug)]
-#[brw(import(players: &[OptionalPlayer]))]
+#[brw(import(aiVersion: BoundedU32<0, 2>, players: &[OptionalPlayer]))]
 struct AiPlayer {
     version: Version!(6, "AI Player"),
     init: Bool,
     #[brw(if(version.version > 1))]
+    #[br(dbg)]
     ai_type: Option<AiType>,
     #[brw(if(version.version < 6 || init.bool))]
     #[brw(args(version.version))]
     initialized_ai_player: Option<InitAiPlayer>,
-    #[brw(if(players[0].player.as_ref().is_some_and(|p|p.init.bool)))]
+    #[brw(if(aiVersion > 1 && players[0].player.as_ref().is_some_and(|p|p.init.bool)))] //TODO
+    #[br(try)]
     military_map: Option<MilitaryMap>,
 }
 #[binrw]
@@ -67,43 +69,281 @@ struct InitAiPlayer {
 
 #[binrw]
 #[derive(Debug)]
-struct ConqueredContinents;
+struct ConqueredContinents {
+    version: Version!(0, "Ai ConqueredContinents"),
+    init: Bool,
+    continent_ids: Array<u32>,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct ProductionControl;
+struct ProductionControl {
+    version: Version!(0, "AI ProductionControl"),
+    init: Bool,
+    current: Good,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct GoodsArrangement;
+struct GoodsArrangement {
+    version: Version!(0, "AI GoodsArrangement"),
+    init: Bool,
+    stage: GoodsArrangementStage,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[derive(Debug)]
+enum GoodsArrangementStage {
+    DepotSettings = 0,
+    HarborSettings = 1,
+    MilitaryArrangement1 = 2,
+    MoveSoldiersFromDepots1 = 3,
+    Nothing1 = 4,
+    Nothing2 = 5,
+    Nothing3 = 6,
+    MilitaryArrangement2 = 7,
+    MoveSoldiersFromDepots2 = 8,
+    Nothing4 = 9,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct FoodArrangement;
+struct FoodArrangement {
+    version: Version!(0, "AI FoodArrangement"),
+    init: Bool,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct LockSmith;
+struct LockSmith {
+    version: Version!(1, "AI LockSmith"),
+    init: Bool,
+    tool_need_ref: Ref<Need>,
+    #[brw(if(version.version > 0))]
+    last_tool_produced: Option<Good>,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct NeedCreation;
+struct NeedCreation {
+    version: Version!(0, "AI NeedCreation"),
+    init: Bool,
+    state: NeedCreationState,
+    /// the time the when the next check if enough stone and plank is present is executed (in
+    /// 10mins)
+    next_stone_and_plank_check_time: u32,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[derive(Debug)]
+/// Represents what the ai currently needs/is working on
+enum NeedCreationState {
+    None = 0,
+    StoneAndPlank = 1,
+    SwordAndBear = 2,
+    Donkey = 3,
+    Coin = 4,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct Destruction;
+struct Destruction {
+    version: Version!(2, "Ai DestructionSystem"),
+    init: Bool,
+    #[brw(if(version.version > 1))]
+    curr_flag_idx: u32,
+    #[brw(if(version.version < 2))]
+    idk: u64,
+    #[brw(if(version.version > 0))]
+    some_ref: u64,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct AiResources;
+struct AiResources {
+    version: Version!(0, "Ai ResourceSystem"),
+    init: Bool,
+    needs: NeedRefs,
+    expansion_target: ExpansionTarget,
+    need: Good,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct AiMilitary;
+struct AiMilitary {
+    version: Version!(8, "Ai MilitarySystem"),
+    init: Bool,
+    military_building_creation: MilitaryBuildingCreation,
+    military_settings: MilitarySettings,
+    #[brw(if(version.version < 7))]
+    idk: u32,
+    attack_system: AttackSystem,
+    soldier_creation: SoldierCreation,
+    catapult_construction: CatapultConstruction,
+    #[brw(if(version.version > 2))]
+    castle_settings: Option<CastleSettings>,
+    #[brw(if(version.version > 3))]
+    weapon_production: Option<WeaponProduction>,
+    #[brw(if(version.version > 4))]
+    coin_production: Option<CoinProduction>,
+    #[brw(if(version.version > 5))]
+    coin_arrangement: Option<CoinArrangement>,
+    #[brw(if(version.version > 7))]
+    military_upgrade: Option<MilitaryUpgrade>,
+}
 
 #[binrw]
 #[derive(Debug)]
-struct Expansion;
+struct SoldierCreation {
+    version: Version!(0, "AI SoldierCreation"),
+    init: Bool,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct MilitaryUpgrade {
+    version: Version!(1, "AI MilitaryUpgrade"),
+    init: Bool,
+    #[brw(if(version.version > 0))]
+    curr_military_building_idx: u32,
+    #[brw(if(version.version == 0))]
+    idk: u64,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct CoinArrangement {
+    version: Version!(0, "AI CoinArrangement"),
+    init: Bool,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct CoinProduction {
+    version: Version!(0, "AI CoinProduction"),
+    init: Bool,
+    idk: u32,
+    idk2: f32, //same as in WeaponProduction
+}
+
+#[binrw]
+#[derive(Debug)]
+struct WeaponProduction {
+    version: Version!(0, "AI WeaponProduction"),
+    init: Bool,
+    idk: u32,
+    idk2: f32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct CastleSettings {
+    version: Version!(0, "AI CastleSettings"),
+    init: Bool,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct CatapultConstruction {
+    version: Version!(0, "AI CatapultConstruction"),
+    init: Bool,
+    curr_pos: MapIdxPos,
+    best_score: f32,
+    best_pos: MapIdxPos,
+    max_iterations: i32,
+    order: ConstructionOrder,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct AttackSystem {
+    version: Version!(1, "Ai AttackSystem"),
+    init: Bool,
+    target_selection: TargetSelection,
+    attack_execution: AttackExecution,
+    #[brw(if(version.version > 0))]
+    allowed_attack_count: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct TargetSelection {
+    version: Version!(0, "Ai AttackTargetSelection"),
+    init: Bool,
+    target: AttackTarget,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct AttackTarget {
+    version: Version!(0, "Ai AttackTarget"),
+    target_pos: MapIdxPos,
+    distance: u32,
+    score: u32,
+    target_owner: Optional<PlayerId>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct AttackExecution {
+    version: Version!(1, "Ai AttackExecution"),
+    init: Bool,
+    #[brw(if(version.version > 0))]
+    pos: Option<PatternCursor>,
+    #[brw(if(version.version > 0))]
+    expansion_target: Option<ExpansionTarget>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct MilitarySettings {
+    version: Version!(0, "AI MilitarySettings"),
+    init: Bool,
+    tick: CapedU32<50>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct MilitaryBuildingCreation {
+    version: Version!(0, "Ai MilitaryBuildingCreation"),
+    init: Bool,
+    order: ConstructionOrder,
+    target: ExpansionTarget,
+    tick: CapedU32<3>,
+    idk: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Expansion {
+    version: Version!(1, "Ai ExpansionSystem"),
+    init: Bool,
+    target: ExpansionTarget,
+    target2: ExpansionTarget,
+    expansion_request_type: ExpansionRequestType,
+    #[brw(if(version.version > 0))]
+    expedition: Option<Expedition>,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[derive(Debug)]
+enum ExpansionRequestType {
+    None = 0,
+    Resources = 1,
+    Cells = 2,
+    Needs = 3,
+    Military = 4,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Expedition {
+    version: Version!(0, "AI Expedition"),
+    init: Bool,
+}
 
 #[binrw]
 #[derive(Debug)]
@@ -168,7 +408,6 @@ struct HarborCreation {
 
 #[binrw]
 #[derive(Debug)]
-
 struct Cell {
     version: Version!(5, "Ai Cell"),
     init: Bool,
@@ -592,15 +831,26 @@ struct MilitaryMap {
 #[binrw]
 #[derive(Debug)]
 struct ResourceMap {
-    version: Version!(0, "Ai ResourceMap"),
+    version: Version!(1, "Ai ResourceMap"), //TODO why not 0?
     init: Bool,
     width: u32,
     height: u32,
     #[br(count = width * height)]
+    #[brw(if(version.version == 0))]
     elements: Vec<ResourceMapElement>,
+    #[br(count = width * height)]
+    #[brw(if(version.version > 0))]
+    element_vecs: Vec<ResourceMapElements>,
     tick_pos: MapIdxPos,
     tick_pos2: MapIdxPos,
     len: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct ResourceMapElements {
+    version: Version!(0, "AI ResourceMapElements"),
+    elements: Array<ResourceMapElement>,
 }
 
 #[binrw]
@@ -620,7 +870,8 @@ struct SmallResourceMap {
     init: Bool,
     width: u32,
     height: u32,
-    //TODO some vec
+    #[br(count = width * height)]
+    element_vecs: Vec<ResourceMapElements>,
     curr_tick_pos: MapIdxPos,
 }
 

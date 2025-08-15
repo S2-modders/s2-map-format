@@ -87,20 +87,25 @@ where
 #[brw(repr = u32)]
 #[derive(Debug, EnumCount, FromRepr)]
 pub enum Direction {
-    Ost = 0,
+    None = 0,
     SouthEast = 1,
     SouthWest = 2,
     West = 3,
     NorthWest = 4,
     NorthEast = 5,
+    Ost = 6,
 }
 
 #[binrw]
-#[derive(Debug, EnumCount, PartialEq, Eq, IsVariant)]
-pub enum OptionPlayerId {
+#[derive(Debug, Default, EnumCount, PartialEq, Eq, IsVariant)]
+pub enum Optional<T>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug,
+{
+    #[default]
     #[brw(magic = 0xffffffffu32)]
     None,
-    Some(PlayerId),
+    Some(T),
 }
 
 #[binrw]

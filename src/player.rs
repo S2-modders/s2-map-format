@@ -15,8 +15,8 @@ pub struct Players {
 #[binrw]
 #[derive(Debug)]
 pub struct OptionalPlayer {
-    tmp: OptionPlayerId,
-    #[brw(if(tmp.is_some()))]
+    id: Optional<PlayerId>,
+    #[brw(if(id.is_some()))]
     pub player: Option<Player>,
 }
 

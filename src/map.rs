@@ -113,7 +113,7 @@ struct TerritoryMap {
     width: u32,
     height: u32,
     #[br(count = width * height)]
-    territories: Vec<OptionPlayerId>,
+    territories: Vec<Optional<PlayerId>>,
 }
 
 #[binrw]

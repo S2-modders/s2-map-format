@@ -12,10 +12,11 @@ use strum::EnumCount;
 #[binrw]
 #[derive(Debug)]
 pub struct NetSys {
-    version: Version!(2, "Net System"), //TODO why version 2?
+    version: Version!(1, "Net System"),
     init: Bool,
     flags: Array<(PlayerId, Flag)>,
     streets: Array<Street>,
+    #[brw(if(version.version > 0))]
     idk: [[Array<Idk>; 3]; PlayerId::COUNT],
 }
 
