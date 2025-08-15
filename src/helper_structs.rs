@@ -577,7 +577,7 @@ pub enum AnimalType {
 #[binrw]
 #[derive(derive_more::From, derive_more::Into, Clone, Copy, PartialEq, Eq)]
 pub struct InnerVersion<const MAX_VER: u32, const CRC: u32, const LEN: u32> {
-    #[br(try_map = |x: u32| x.try_into())]
+    #[br(try_map = |x: u32| x.try_into().map_err(|_| format!("version too large: expected <= {MAX_VER} got {x}")))]
     #[bw(map = |x| x.get())]
     pub version: BoundedU32<0, MAX_VER>,
     #[bw(calc = CRC)]
@@ -721,7 +721,7 @@ impl fmt::Debug for PatternCursor {
 
 #[binrw]
 #[derive(Debug)]
-pub struct LastTickedPos {
+pub struct MapIdxPos {
     x: u32,
     y: u32,
 }

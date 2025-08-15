@@ -1,7 +1,96 @@
 use crate::Version;
+use crate::ai::Ai;
+use crate::buildings::Villages;
+use crate::doodads::Doodads;
 use crate::helper_structs::*;
+use crate::map::Map;
+use crate::military::Military;
+use crate::navy::Navy;
+use crate::net::NetSys;
+use crate::player::Players;
+use crate::resources::Resources;
+use crate::settlers::Settlers;
+use crate::transport::Transport;
 use binrw::binrw;
-use strum::*;
+use strum::EnumCount;
+
+#[binrw]
+#[derive(Debug)]
+pub struct MapFile {
+    pub logic: Logic,
+    pub map: Map,
+    pub resources: Resources,
+    pub doodads: Doodads,
+    pub ambients: Ambients,
+    #[brw(if( logic.mapinfo.file_type == FileType::SaveGame))]
+    pub gamefilelogic: Option<GameFileLogic>,
+}
+#[binrw]
+#[derive(Debug)]
+pub struct Ambients {
+    version: Version!(0, "Logic Ambients"),
+    init: Bool,
+    ambients: Array<(AmbientType, PatternCursor)>,
+}
+
+#[binrw]
+#[derive(Debug)]
+pub struct GameFileLogic {
+    version: Version!(2, "Game File Logic"),
+    #[brw(if(version.version > 0))]
+    pub random: Option<Random>,
+    pub players: Players,
+    pub villages: Villages,
+    pub settlers: Settlers,
+    pub transport: Transport,
+    pub military: Military,
+    pub navy: Navy,
+    pub netsys: NetSys,
+    #[brw(args(&players.players))]
+    pub ai: Ai,
+    pub stats: Stats,
+    #[brw(if(version.version > 1))]
+    pub game_script: Option<GameScript>,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Random {
+    version: Version!(0, "Logic Random"),
+    init: Bool,
+    state: u64,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Stats {
+    version: Version!(0, "LogicStatistics"),
+    idk: u32,
+    stats: Array<(Uuid, u32, f32, u32)>,
+    player_stats: [PlayerStats; PlayerId::COUNT],
+}
+
+#[binrw]
+#[derive(Debug)]
+struct PlayerStats {
+    version: Version!(2, "LogicPlayerStatistics"),
+    stats: [Array<u32>; PlayerId::COUNT],
+    stats2: [Array<u32>; 14],
+    idk: u32,
+    #[brw(if(version.version > 0))]
+    died_soldiers: u32,
+    #[brw(if(version.version > 1))]
+    territory: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct GameScript {
+    version: Version!(0, "GameScript"),
+    init: Bool,
+    map_name: Str,
+    persistent: Array<(Str, u32)>,
+}
 
 #[binrw]
 #[derive(Debug)]

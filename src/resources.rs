@@ -26,7 +26,7 @@ struct AnimalRespawn {
     init: Bool,
     tick: CapedU32<999>,
     tick_increment: u32,
-    pos: LastTickedPos,
+    pos: MapIdxPos,
 }
 
 #[binrw]
