@@ -7,6 +7,7 @@ use binrw::binrw;
 #[derive(Debug)]
 pub struct Military {
     version: Version!(0, "MilitarySystem"),
+    #[brw(assert(init.bool))]
     init: Bool,
     recruiting: Recruiting,
     distances: Distances,
@@ -43,7 +44,6 @@ struct Fight {
     version: Version!(1, "Military Fight"),
     fighters: Array<Fighters>,
     fighters2: Array<Fighters>,
-    #[brw(if(version.version > 0))]
     fighters3: Array<Fighters>,
 }
 
@@ -51,20 +51,13 @@ struct Fight {
 #[derive(Debug)]
 struct Fighters {
     version: Version!(2, "Military Fighters"),
+    #[brw(assert(init.bool))]
     init: Bool,
-    #[brw(if(version.version < 1))]
-    settler_ref0: Option<Ref<Settler>>,
-    #[brw(if(version.version < 1))]
-    settler_ref1: Option<Ref<Settler>>,
-    #[brw(if(version.version < 1))]
-    building_ref: Option<Ref<Building>>,
-    #[brw(if(version.version > 0))]
-    fightconnections: Option<FightConnections>,
+    fightconnections: FightConnections,
     idk: u32,
     idk2: Bool,
     idk3: Bool,
     pos: PatternCursor,
-    #[brw(if(version.version > 1))]
     idk4: Bool,
     idk5: Bool,
 }
@@ -73,6 +66,7 @@ struct Fighters {
 #[derive(Debug)]
 struct FightConnections {
     version: Version!(0, "Military FightConnections"),
+    #[brw(assert(init.bool))]
     init: Bool,
     settler_ref0: Ref<Settler>,
     settler_ref1: Ref<Settler>,

@@ -32,6 +32,7 @@ pub struct MapFile {
 #[derive(Debug)]
 pub struct Ambients {
     version: Version!(0, "Logic Ambients"),
+    #[brw(assert(init.bool))]
     init: Bool,
     ambients: Array<(AmbientType, PatternCursor)>,
 }
@@ -40,8 +41,7 @@ pub struct Ambients {
 #[derive(Debug)]
 pub struct GameFileLogic {
     version: Version!(2, "Game File Logic"),
-    #[brw(if(version.version > 0))]
-    pub random: Option<Random>,
+    pub random: Random,
     pub players: Players,
     pub villages: Villages,
     pub settlers: Settlers,
@@ -52,14 +52,14 @@ pub struct GameFileLogic {
     #[brw(args(&players.players))]
     pub ai: Ai,
     pub stats: Stats,
-    #[brw(if(version.version > 1))]
-    pub game_script: Option<GameScript>,
+    pub game_script: GameScript,
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct Random {
     version: Version!(0, "Logic Random"),
+    #[brw(assert(init.bool))]
     init: Bool,
     state: u64,
 }
@@ -80,9 +80,7 @@ struct PlayerStats {
     stats: [Array<u32>; PlayerId::COUNT],
     stats2: [Array<u32>; 14],
     idk: u32,
-    #[brw(if(version.version > 0))]
     died_soldiers: u32,
-    #[brw(if(version.version > 1))]
     territory: u32,
 }
 
@@ -90,6 +88,7 @@ struct PlayerStats {
 #[derive(Debug)]
 pub struct GameScript {
     version: Version!(0, "GameScript"),
+    #[brw(assert(init.bool))]
     init: Bool,
     map_name: Str,
     persistent: Array<(Str, u32)>,
@@ -100,19 +99,13 @@ pub struct GameScript {
 pub struct Logic {
     pub version: Version!(7, "LogicSystem"),
     pub uuid_generator: UuidGenerator,
+    #[brw(assert(init.bool))]
     pub init: Bool,
-    #[brw(if(version.version > 0 && version.version < 6))]
-    pub unused: u32,
-    #[brw(if(version.version > 3))]
-    pub duration_between_ticks: Option<Time>,
-    #[brw(if(version.version > 3))]
-    pub time_ticked: Option<Time>,
-    #[brw(if(version.version > 3))]
-    pub time_passed: Option<Time>,
-    #[brw(if(version.version > 4))]
-    pub trigger_sys: Option<TriggerSys>,
-    #[brw(if(version.version > 6))]
-    pub tick: Option<i32>,
+    pub duration_between_ticks: Time,
+    pub time_ticked: Time,
+    pub time_passed: Time,
+    pub trigger_sys: TriggerSys,
+    pub tick: i32,
 }
 
 #[binrw]
@@ -133,27 +126,16 @@ pub struct MapInfo {
     pub version: Version!(9, "MapInfo"),
     pub start_positions: Array<PatternCursor>,
     pub map_name: Str,
-    #[brw(if(version.version > 1))]
-    pub dimensions: Option<Dimensions>,
+    pub dimensions: Dimensions,
     pub player_types: [PlayerType; PlayerId::COUNT],
-    #[brw(if(version.version > 2 && version.version < 6))]
-    pub idk3: Option<[(u32, u32, u32); PlayerId::COUNT]>,
-    #[brw(if(version.version > 5))]
-    pub idk3_2: Option<[(u32, PlayerId, i32, u32); PlayerId::COUNT]>,
-    #[brw(if(version.version > 0))]
+    pub idk3: [(u32, PlayerId, i32, u32); PlayerId::COUNT],
     pub mission_target_type: MissionTarget,
-    #[brw(if(version.version > 3))]
     pub idk4: u32,
-    #[brw(if(version.version > 4))]
     pub file_type: FileType,
-    #[brw(if(version.version > 6))]
-    pub id: Option<CoreUuid>,
-    #[brw(if(version.version > 7))]
-    pub idk5: Option<Bool>,
-    #[brw(if(version.version > 7))]
-    pub player_names: Option<[Str; PlayerId::COUNT]>,
-    #[brw(if(version.version > 8))]
-    pub idk6: Option<u32>,
+    pub id: CoreUuid,
+    pub idk5: Bool,
+    pub player_names: [Str; PlayerId::COUNT],
+    pub idk6: u32,
 }
 
 #[binrw]
@@ -191,6 +173,7 @@ pub enum MissionTarget {
 #[derive(Debug)]
 pub struct TriggerSys {
     pub version: Version!(0, "TriggerSystem"),
+    #[brw(assert(init.bool))]
     pub init: Bool,
     pub triggers: Array<Trigger>,
 }
@@ -199,6 +182,7 @@ pub struct TriggerSys {
 #[derive(Debug)]
 pub struct Trigger {
     version: Version!(1, "TriggerObject"),
+    #[brw(assert(init.bool))]
     init: Bool,
     id: Uuid,
     trigger_type: TriggerType,
@@ -207,8 +191,7 @@ pub struct Trigger {
     active: Bool,
     name: Str,
     player_id: PlayerId,
-    #[brw(if(version.version > 0))]
-    time: Option<Time>,
+    time: Time,
 }
 
 impl Ided for Trigger {
@@ -236,13 +219,13 @@ impl Trigger {
         player_id: PlayerId,
     ) -> Trigger {
         Trigger {
-            version: <Version!(1, "TriggerObject")>::new::<1>(),
+            version: Version {},
             init: true.into(),
             id: id_generator.next_id(),
             active: true.into(),
-            time: Some(Time {
+            time: Time {
                 duration: Duration::default(),
-            }),
+            },
             trigger_type,
             pos: pos.into(),
             idk,

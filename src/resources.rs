@@ -7,15 +7,12 @@ use binrw::binrw;
 #[derive(Debug)]
 pub struct Resources {
     version: Version!(4, "resources"),
+    #[brw(assert(init.bool))]
     init: Bool,
     deposits: Array<Deposit>,
-    #[brw(if(version.version > 0))]
     animals: Array<Animal>,
-    #[brw(if(version.version > 2))]
-    respawn: Option<AnimalRespawn>,
-    #[brw(if(version.version > 3))]
+    respawn: AnimalRespawn,
     idk: u32,
-    #[brw(if(version.version > 3))]
     idk2: u32,
 }
 
@@ -23,6 +20,7 @@ pub struct Resources {
 #[derive(Debug)]
 struct AnimalRespawn {
     version: Version!(0, "Resources AnimalRespawn"),
+    #[brw(assert(init.bool))]
     init: Bool,
     tick: CapedU32<999>,
     tick_increment: u32,
@@ -39,9 +37,7 @@ pub struct Deposit {
     buildingref: Ref<Building>,
     pos2: ElevationCursor,
     current_grouth: f32,
-    #[brw(if(version.version > 0))]
     age: u32,
-    #[brw(if(version.version > 0))]
     life_time: u32,
 }
 
@@ -61,9 +57,7 @@ pub struct Animal {
     pos: PatternCursor,
     movement: AnimalMovement,
     idk1: u32, // 2 = is interpolating movement
-    #[brw(if(version.version > 0))]
     idk2: u32,
-    #[brw(if(version.version > 1))]
     villagebuildingref: Ref<Building>,
 }
 

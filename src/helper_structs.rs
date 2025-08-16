@@ -5,9 +5,16 @@ use std::{fmt, marker::PhantomData, time::Duration};
 use strum::*;
 
 #[macro_export]
+macro_rules! VersionI {
+    ($MAX_VER:literal, $name:literal) => {
+        VersionI<$MAX_VER, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}>
+    };
+}
+
+#[macro_export]
 macro_rules! Version {
     ($MAX_VER:literal, $name:literal) => {
-        InnerVersion<$MAX_VER, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}>
+        Version<$MAX_VER, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}>
     };
 }
 
@@ -92,6 +99,7 @@ pub enum Direction {
     NorthWest = 4,
     NorthEast = 5,
     Ost = 6,
+    I,
 }
 
 #[binrw]
@@ -568,25 +576,27 @@ pub enum DoodadType {
     Deadsettler = 0xdacb0a13,
 }
 
-pub fn has_lifetime(doodad: DoodadType) -> bool {
-    use DoodadType::*;
-    matches!(
-        doodad,
-        EmptySign
-            | WaterSign
-            | CoalSignS
-            | CoalSignM
-            | CoalSignL
-            | IronSignS
-            | IronSignM
-            | IronSignL
-            | GoldSignS
-            | GoldSignM
-            | GoldSignL
-            | GranitSignS
-            | GranitSignM
-            | GranitSignL
-    )
+impl DoodadType {
+    pub fn has_lifetime(self) -> bool {
+        use DoodadType::*;
+        matches!(
+            self,
+            EmptySign
+                | WaterSign
+                | CoalSignS
+                | CoalSignM
+                | CoalSignL
+                | IronSignS
+                | IronSignM
+                | IronSignL
+                | GoldSignS
+                | GoldSignM
+                | GoldSignL
+                | GranitSignS
+                | GranitSignM
+                | GranitSignL
+        )
+    }
 }
 
 #[binrw]
@@ -600,41 +610,34 @@ pub enum AnimalType {
 }
 
 #[binrw]
-#[derive(derive_more::From, derive_more::Into, Clone, Copy, PartialEq, Eq)]
-pub struct InnerVersion<const MAX_VER: u32, const CRC: u32, const LEN: u32> {
-    #[br(try_map = |x: u32| x.try_into().map_err(|_| format!("version too large: expected <= {MAX_VER} got {x}")))]
-    #[bw(map = |x| x.get())]
-    pub version: BoundedU32<0, MAX_VER>,
+#[derive(derive_more::From, derive_more::Into, Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct VersionI<const MAX_VER: u32, const CRC: u32, const LEN: u32> {
+    #[br(assert(version == MAX_VER))]
+    #[bw(calc = MAX_VER)]
+    version: u32,
     #[bw(calc = CRC)]
     hash: u32,
     #[br(assert(len == LEN, "version name length mismatch: expected {LEN}, found {len}"))]
     #[br(assert(hash == CRC))]
     #[bw(calc = LEN)]
     len: u32,
+    #[br(assert(init == 1))]
+    #[bw(calc = 1)]
+    init: u32,
 }
 
-impl<const MAX_VER: u32, const CRC: u32, const LEN: u32> InnerVersion<MAX_VER, CRC, LEN> {
-    pub fn new<const VER: u32>() -> Self {
-        Self {
-            version: BoundedU32::<0, MAX_VER>::const_new::<VER>(),
-        }
-    }
-}
-
-impl<const CRC: u32, const LEN: u32> Default for InnerVersion<0, CRC, LEN> {
-    fn default() -> Self {
-        Self {
-            version: Default::default(),
-        }
-    }
-}
-
-impl<const MAX_VER: u32, const CRC: u32, const LEN: u32> fmt::Debug
-    for InnerVersion<MAX_VER, CRC, LEN>
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.version.get().fmt(f)
-    }
+#[binrw]
+#[derive(derive_more::From, derive_more::Into, Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct Version<const MAX_VER: u32, const CRC: u32, const LEN: u32> {
+    #[br(assert(version == MAX_VER))]
+    #[bw(calc = MAX_VER)]
+    version: u32,
+    #[bw(calc = CRC)]
+    hash: u32,
+    #[br(assert(len == LEN, "version name length mismatch: expected {LEN}, found {len}"))]
+    #[br(assert(hash == CRC))]
+    #[bw(calc = LEN)]
+    len: u32,
 }
 
 #[binrw]
@@ -692,6 +695,7 @@ impl<const CAP: u32> CapedU32<CAP> {
 #[binrw]
 pub struct CoreUuid {
     version: Version!(0, "Core UUID"),
+    #[brw(assert(init.bool))]
     init: Bool,
     id: u128,
 }
@@ -703,9 +707,31 @@ impl fmt::Debug for CoreUuid {
 }
 
 #[binrw]
-pub struct ElevationCursor {
+#[derive(Debug)]
+pub struct OptionalElevationCursor {
     version: Version!(0, "ElevationCursor"),
     pub x: u32,
+    pub y: u32,
+}
+
+impl Default for OptionalElevationCursor {
+    fn default() -> Self {
+        Self {
+            version: Default::default(),
+            x: u32::MAX,
+            y: u32::MAX,
+        }
+    }
+}
+
+#[binrw]
+pub struct ElevationCursor {
+    version: Version!(0, "ElevationCursor"),
+    #[br(assert(x != u32::MAX))]
+    #[bw(assert(*x != u32::MAX))]
+    pub x: u32,
+    #[br(assert(y != u32::MAX))]
+    #[bw(assert(*y != u32::MAX))]
     pub y: u32,
 }
 
@@ -716,12 +742,30 @@ impl fmt::Debug for ElevationCursor {
 }
 
 #[binrw]
+#[derive(Debug)]
+pub struct OptionalPatternCursor {
+    version: Version!(0, "PatternCursor"),
+    pub x: u32,
+    pub y: u32,
+}
+
+impl Default for OptionalPatternCursor {
+    fn default() -> Self {
+        Self {
+            version: Default::default(),
+            x: u32::MAX,
+            y: u32::MAX,
+        }
+    }
+}
+
+#[binrw]
 #[derive(Default)]
 pub struct PatternCursor {
     version: Version!(0, "PatternCursor"),
-    #[br(assert(x < 1000 || x == u32::MAX))]
+    #[br(assert(x < 1000))]
     pub x: u32,
-    #[br(assert(y < 1000 || y == u32::MAX))]
+    #[br(assert(y < 1000))]
     pub y: u32,
 }
 

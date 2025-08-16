@@ -12,6 +12,7 @@ use binrw::binrw;
 #[derive(Debug)]
 pub struct Villages {
     version: Version!(0, "VillageSystem"),
+    #[brw(assert(init.bool))]
     init: Bool,
     buildings: Array<Building>,
     remains: Array<Remains>,
@@ -30,8 +31,7 @@ pub struct Building {
     depot: Depot,
     workers: Workers,
     deposit_ref: Ref<Deposit>,
-    #[brw(if(version.version > 3))]
-    animal_ref: Option<Ref<Animal>>,
+    animal_ref: Ref<Animal>,
     construction: Construction,
     production: Production,
     blocking: Blocking,
@@ -39,23 +39,22 @@ pub struct Building {
     tribe: u32,
     flag_ref: Ref<Flag>,
     settler_spawn: SettlerSpawn,
-    mining_pos: PatternCursor,
+    mining_pos: OptionalPatternCursor,
     territory_updater: TerritoryUpdater,
     bulldozing: Bulldozing,
     order: OrderContainer,
     idk5: Bool,
-    #[brw(if(version.version < 6 || matches!(building_type, Castle | Barracks | GuardHouse | Tower | WatchTower | Fortress)))]
+    #[brw(if(matches!(building_type, Castle | Barracks | GuardHouse | Tower | WatchTower | Fortress)))]
     military: Option<VillageMilitary>,
     carrier_refresh: CarrierRefresh,
     good_flags: GoodFlags,
     idk6: u32,
     tick: u32,
-    #[brw(if(version.version < 6 || matches!(building_type, Catapult)))]
+    #[brw(if(matches!(building_type, Catapult)))]
     catapult: Option<Catapult>,
-    #[brw(if(version.version > 1 && matches!(building_type, Harbor)))]
+    #[brw(if(matches!(building_type, Harbor)))]
     harbor: Option<Harbor>,
-    #[brw(if(version.version > 4))]
-    upgrade: Option<Upgrade>,
+    upgrade: Upgrade,
 }
 
 impl Ided for Building {
@@ -117,10 +116,8 @@ struct Construction {
     progress: f32,
     progress_start_idk: f32,
     settler_ref: Ref<Settler>,
-    #[br(if(version.version > 0))]
-    stock: Option<Stock>,
-    #[br(if(version.version > 1))]
-    building_type: Option<BuildingType>,
+    stock: Stock,
+    building_type: BuildingType,
 }
 
 #[binrw]
@@ -128,8 +125,7 @@ struct Construction {
 struct Production {
     version: Version!(1, "VillageProduction"),
     init: Bool,
-    idk: u32,
-    #[brw(if(version.version > 0))]
+    idk: Option<u32>,
     make_ships: Option<Bool>,
 }
 
@@ -154,8 +150,7 @@ struct Bulldozing {
     progress: f32,
     settler_ref: Ref<Settler>,
     idk: u32,
-    #[br(if(version.version > 0))]
-    building_type: Option<BuildingType>,
+    building_type: BuildingType,
 }
 
 #[binrw]
@@ -176,10 +171,8 @@ struct VillageMilitary {
     enable_coin_supply: Bool,
     idk2: u32,
     soldier_rserve: [u32; 5],
-    #[brw(if(version.version > 0))]
-    interceptors: Option<Interceptors>,
-    #[brw(if(version.version > 1))]
-    coin_supply2: Option<Bool>,
+    interceptors: Interceptors,
+    coin_supply2: Bool,
 }
 
 #[binrw]
@@ -228,8 +221,8 @@ struct GoodFlags {
 #[derive(Debug)]
 struct Catapult {
     version: Version!(0, "Village Catapult"),
-    target: PatternCursor,
-    target_radomized: PatternCursor,
+    target: OptionalPatternCursor,
+    target_radomized: OptionalPatternCursor,
     time_next_direction_set: f32,
     time_stone_ordered: f32,
     direction: Direction,
@@ -240,22 +233,15 @@ struct Catapult {
 #[derive(Debug)]
 struct Harbor {
     version: Version!(6, "Village Harbor"),
-    #[brw(if(version.version < 6, Bool { bool: true }))]
+    #[brw(assert(init.bool))]
     init: Bool,
     landing_positions: Array<LandingPosition>,
-    #[brw(if(version.version > 0))]
     idk: u32,
-    #[brw(if(version.version > 1))]
-    expedition: Option<Expedition>,
-    #[brw(if(version.version > 1))]
-    orders: Option<OrderContainer>,
-    #[brw(if(version.version > 2))]
+    expedition: Expedition,
+    orders: OrderContainer,
     harbor_receivers: Array<HarborReceiver>,
-    #[brw(if(version.version > 3))]
-    ship_ref: Option<Ref<Ship>>,
-    #[brw(if(version.version > 3))]
-    settlers: Option<SettlersContainer>,
-    #[brw(if(version.version > 4))]
+    ship_ref: Ref<Ship>,
+    settlers: SettlersContainer,
     idk2: u32,
     needs_transfer0: NeedsTransfer,
     needs_transfer1: NeedsTransfer,
@@ -314,11 +300,11 @@ struct Remains {
     remains_type: RemainsType, //maybe in wrong order
     building_type: BuildingType,
     version: Version!(1, "VillageRemains"),
+    #[brw(assert(init.bool))]
     init: Bool,
     pos: PatternCursor,
     someproperty: u32,
     blocking: Blocking,
-    #[brw(if(version.version > 0))]
     idk: u32,
 }
 
@@ -326,6 +312,7 @@ struct Remains {
 #[derive(Debug)]
 struct Blocking {
     version: Version!(0, "Blocking"),
+    #[brw(assert(init.bool))]
     init: Bool,
     pos: PatternCursor,
     size: u32,
@@ -335,13 +322,9 @@ struct Blocking {
 #[derive(Debug)]
 struct Orders {
     version: Version!(2, "Order System"),
+    #[brw(assert(init.bool))]
     init: Bool,
     orders: Array<Order>,
-    #[brw(if(version.version == 0))]
-    unused1: u32,
-    #[brw(if(version.version == 1))]
-    unused2: u64,
-    #[brw(if(version.version > 1))]
     idk: i32,
 }
 
@@ -350,15 +333,11 @@ struct Orders {
 struct Order {
     version: Version!(3, "Village Order"),
     id: Uuid,
-    #[brw(if(version.version < 3))]
-    unused: u32,
     ordered: Good,
-    #[brw(if(version.version > 0))]
     used: Bool,
     building_ref: Ref<Building>,
     flag_ref: Ref<Flag>,
     street_ref: Ref<Street>,
-    #[brw(if(version.version > 1))]
     building_ref2: Ref<Building>,
 }
 

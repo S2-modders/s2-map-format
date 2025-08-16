@@ -7,6 +7,7 @@ use binrw::binrw;
 #[derive(Debug)]
 pub struct Navy {
     version: Version!(2, "Navy System"),
+    #[brw(assert(init.bool))]
     init: Bool,
     ships: Array<(PlayerId, Ship)>,
 }
@@ -23,12 +24,9 @@ pub struct Ship {
     idk: u32,
     expedition: Expedition,
     building_ref2: Ref<Building>,
-    #[brw(if(version.version > 0))]
     receivers: Array<ShipReceiver>,
-    #[brw(if(version.version > 1))]
-    pos: Option<PatternCursor>,
-    #[brw(if(version.version > 2))]
-    ship_name: Option<CapedU32<19>>,
+    pos: PatternCursor,
+    ship_name: CapedU32<19>,
 }
 
 impl Ided for Ship {

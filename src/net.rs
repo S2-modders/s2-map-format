@@ -13,10 +13,10 @@ use strum::EnumCount;
 #[derive(Debug)]
 pub struct NetSys {
     version: Version!(1, "Net System"),
+    #[brw(assert(init.bool))]
     init: Bool,
     flags: Array<(PlayerId, Flag)>,
     streets: Array<Street>,
-    #[brw(if(version.version > 0))]
     idk: [[Array<Idk>; 3]; PlayerId::COUNT],
 }
 
@@ -53,6 +53,7 @@ struct FlagLink {
 #[derive(Debug)]
 struct PackageContainer {
     version: Version!(0, "Package Container"),
+    #[brw(assert(init.bool))]
     init: Bool,
     packages: Array<Ref<Package>>,
 }
@@ -84,12 +85,9 @@ pub struct Street {
     stone_score: f32,
     is_stone: Bool,
     is_waterway: Bool,
-    #[brw(if(version.version > 0))]
-    idk: Option<Bool>,
-    #[brw(if(version.version > 0))]
-    has_second_carrier: Option<Bool>,
-    #[brw(if(version.version > 0))]
-    is_not_waterway: Option<Bool>,
+    idk: Bool,
+    has_second_carrier: Bool,
+    is_not_waterway: Bool,
 }
 
 impl Ided for Street {

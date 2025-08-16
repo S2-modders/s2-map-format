@@ -32,7 +32,7 @@ fn main() -> Result<()> {
             let map = MapFile::read_le(reader)?;
             // let print = &map.logic.mapinfo;
             // println!("{print:?}");
-            let print = &map.logic.trigger_sys.unwrap().triggers;
+            let print = &map.logic.trigger_sys.triggers;
             println!("{print:?}");
             // let mut writer = std::io::Cursor::new(Vec::new());
             // map.write_le(&mut writer)?;

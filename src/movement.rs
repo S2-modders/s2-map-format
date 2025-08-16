@@ -12,8 +12,7 @@ pub struct SettlerMovement {
     idk: u32,
     sub_tile_pos: ElevationCursor,
     idk2: Bool,
-    #[brw(if(version.version > 0))]
-    pos: Option<PatternCursor>,
+    pos: PatternCursor,
 }
 
 #[binrw]
@@ -21,8 +20,7 @@ pub struct SettlerMovement {
 pub struct AnimalMovement {
     version: Version!(1, "Navy Movement"),
     path: ResourcePath,
-    #[brw(if(version.version > 0))]
-    pos: Option<PatternCursor>, //Get this instead in movementBase.pos if None
+    pos: PatternCursor,
     movement_base: Base,
 }
 
@@ -38,14 +36,14 @@ pub struct NavyPath {
 struct PathBase {
     version: Version!(1, "Movement Path Base"),
     init: Bool,
-    #[brw(if (init.bool || version.version == 0))]
+    #[brw(if (init.bool))]
     poses: Array<PatternCursor>,
-    #[brw(if (init.bool || version.version == 0))]
-    idk: Bool,
-    #[brw(if (init.bool || version.version == 0))]
-    idk1: i32,
-    #[brw(if (init.bool || version.version == 0))]
-    idk2: Bool,
+    #[brw(if (init.bool))]
+    idk: Option<Bool>,
+    #[brw(if (init.bool))]
+    idk1: Option<i32>,
+    #[brw(if (init.bool))]
+    idk2: Option<Bool>,
 }
 
 #[binrw]
@@ -61,7 +59,7 @@ struct Base {
     version: Version!(0, "Movement Base"),
     pos: PatternCursor,
     idk: PatternCursor,
-    idk1: PatternCursor,
+    idk1: OptionalPatternCursor,
     interpolator: Interpolator,
 }
 
@@ -70,10 +68,10 @@ struct Base {
 struct Rough {
     version: Version!(0, "Movement Rough"),
     init: Bool,
-    pos0: PatternCursor,
-    pos1: PatternCursor,
-    pos2: PatternCursor,
-    pos3: PatternCursor,
+    pos0: OptionalPatternCursor,
+    pos1: OptionalPatternCursor,
+    pos2: OptionalPatternCursor,
+    pos3: OptionalPatternCursor,
     path: Path,
 }
 
@@ -82,7 +80,7 @@ struct Rough {
 struct Path {
     version: Version!(0, "Path"),
     idk: u32,
-    pos: PatternCursor,
+    pos: OptionalPatternCursor,
     free_path: FreePath,
     street_path: StreetPath,
 }
@@ -103,7 +101,7 @@ struct StreetPath {
     idk1: Bool,
     idk2: Bool,
     idk3: i32,
-    pos: PatternCursor,
+    pos: OptionalPatternCursor,
     path: Array<PatternCursor>,
     street_ref: Ref<Street>,
     idk4: Bool,
@@ -114,11 +112,11 @@ struct StreetPath {
 #[derive(Debug)]
 struct Fine {
     init: Bool,
-    pos0: ElevationCursor,
-    pos1: ElevationCursor,
-    pos2: ElevationCursor,
-    pos3: ElevationCursor,
-    movement_fine_path: FinePath,
+    pos0: OptionalElevationCursor,
+    pos1: OptionalElevationCursor,
+    pos2: OptionalElevationCursor,
+    pos3: OptionalElevationCursor,
+    fine_path: FinePath,
 }
 
 #[binrw]

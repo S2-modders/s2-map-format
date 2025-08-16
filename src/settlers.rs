@@ -10,6 +10,7 @@ use binrw::binrw;
 #[derive(Debug)]
 pub struct Settlers {
     version: Version!(0, "SettlersSystem"),
+    #[brw(assert(init.bool))]
     init: Bool,
     workers: Array<(PlayerId, Worker)>,
     constructor: Array<(PlayerId, Constructor)>,
@@ -90,9 +91,7 @@ pub struct Soldier {
     building_ref2: Ref<Building>,
     settler_ref: Ref<Settler>,
     test0: [u32; 10], //TODO: filler -- decompiling goals takes too long; version dependent
-    #[br(if(version.version > 1))]
-    building_ref3: Option<Uuid>,
-    #[br(if(version.version > 2))]
+    building_ref3: Uuid,
     idk: Bool,
     live_points: LivePoints,
     settler: Settler,
@@ -154,7 +153,6 @@ impl Ided for Settler {
 struct Animation {
     version: Version!(1, "SettlersAnimation"),
     remaining_time: f32,
-    #[brw(if(version.version == 1))]
-    end_time: Option<f32>,
+    end_time: Time,
     animation_type: u32,
 }

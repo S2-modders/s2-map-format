@@ -7,6 +7,7 @@ use binrw::binrw;
 #[derive(Debug)]
 pub struct Transport {
     version: Version!(0, "Transport System"),
+    #[brw(assert(init.bool))]
     init: Bool,
     packages: Packages,
     package_needs: PackageNeeds,
@@ -17,6 +18,7 @@ pub struct Transport {
 #[derive(Debug)]
 struct Packages {
     version: Version!(0, "Package System"),
+    #[brw(assert(init.bool))]
     init: Bool,
     package: Array<(PlayerId, Package)>,
 }
@@ -32,16 +34,13 @@ pub struct Package {
     settler_ref: Ref<Settler>,
     flag_ref: Ref<Flag>,
     good: Good,
-    pos: PatternCursor,
+    pos: OptionalPatternCursor,
     idk2: Bool,
     idk3: u32,
     idk4: u32,
-    #[brw(if(version.version > 0))]
-    idk5: PatternCursor,
-    #[brw(if(version.version > 0))]
-    idk6: PatternCursor,
-    #[brw(if(version.version > 0))]
-    id2: Uuid,
+    idk5: OptionalPatternCursor,
+    idk6: OptionalPatternCursor,
+    id2: Uuid, //TODO what?
 }
 
 impl Ided for Package {
@@ -54,6 +53,7 @@ impl Ided for Package {
 #[derive(Debug)]
 struct PackageNeeds {
     version: Version!(0, "Transport PackageNeedSystem"),
+    #[brw(assert(init.bool))]
     init: Bool,
     package: Array<PackageNeedTarget>,
 }
@@ -70,6 +70,7 @@ struct PackageNeedTarget {
 #[derive(Debug)]
 struct BuildingNeeds {
     version: Version!(0, "Transport BuildingNeedSystem"),
+    #[brw(assert(init.bool))]
     init: Bool,
     building_need_goods: Array<BuildingNeedGood>,
 }
@@ -82,6 +83,5 @@ struct BuildingNeedGood {
     good: Good,
     package_ref: Ref<Package>,
     idk: u32,
-    #[brw(if(version.version > 0))]
     building_ref2: Ref<Building>,
 }

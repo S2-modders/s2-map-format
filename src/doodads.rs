@@ -6,6 +6,7 @@ use binrw::binrw;
 #[derive(Debug)]
 pub struct Doodads {
     version: Version!(0, "DoodadsSystem"),
+    #[brw(assert(init.bool))]
     init: Bool,
     map1: Array<Doodad>,
     map2: Array<Doodad>,
@@ -19,9 +20,6 @@ struct Doodad {
     version: Version!(1, "DoodadsObject"),
     id: Uuid,
     pos: ElevationCursor,
-    #[brw(if(version.version == 0))]
-    pos2: Option<ElevationCursor>,
-    #[br(if(version.version == 0 || has_lifetime(doodad_type)))]
-    #[bw(if(version.version == 0 || has_lifetime(*doodad_type)))]
+    #[brw(if(doodad_type.has_lifetime()))]
     lifetime: Option<u32>,
 }

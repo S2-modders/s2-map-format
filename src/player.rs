@@ -8,6 +8,7 @@ use strum::*;
 #[derive(Debug)]
 pub struct Players {
     version: Version!(0, "PlayerSystem"),
+    #[brw(assert(init.bool))]
     init: Bool,
     pub players: [Optional<Player>; PlayerId::COUNT],
 }
@@ -17,6 +18,7 @@ pub struct Players {
 pub struct Player {
     id2: PlayerId,
     version: Version!(5, "PlayerObject"),
+    #[brw(assert(init.bool))]
     pub init: Bool,
     name: Str,
     id: PlayerId,
@@ -30,16 +32,10 @@ pub struct Player {
     messages: Messages,
     stock: Stock,
     counter: u32,
-    #[brw(if(version.version > 0))]
-    ship_names: Option<ShipNames>,
-    #[brw(if(version.version > 1))]
+    ship_names: ShipNames,
     idk4: u32,
-    #[brw(if(version.version > 2 && version.version < 5))]
-    seen_old: Option<[u32; PlayerId::COUNT]>, //Seen by
-    #[brw(if(version.version > 4))]
-    seen: Option<[(u32, u32); PlayerId::COUNT]>, //Seen by and Seen
-    #[brw(if(version.version > 3))]
-    stock2: Option<Stock>,
+    seen: [(u32, u32); PlayerId::COUNT], //Seen by and Seen
+    stock2: Stock,
 }
 
 #[binrw]
@@ -47,7 +43,6 @@ pub struct Player {
 struct LockSmith {
     version: Version!(1, "PlayerLocksmith"),
     settings: [(f32, f32); 12],
-    #[brw(if(version.version > 0))]
     idk: u32,
 }
 
@@ -55,6 +50,7 @@ struct LockSmith {
 #[derive(Debug)]
 struct GoodPriorities {
     version: Version!(0, "Good Priorities"),
+    #[brw(assert(init.bool))]
     init: Bool,
     settings: Array<GoodPriority>,
 }
@@ -71,6 +67,7 @@ struct GoodPriority {
 #[derive(Debug)]
 struct GoodArrangement {
     version: Version!(0, "Good Arrangement"),
+    #[brw(assert(init.bool))]
     init: Bool,
     arrangementgroups: Array<GoodArrangementGroup>,
 }
@@ -79,6 +76,7 @@ struct GoodArrangement {
 #[derive(Debug)]
 struct GoodArrangementGroup {
     version: Version!(0, "Player GoodArrangementGroup"),
+    #[brw(assert(init.bool))]
     init: Bool,
     base_arrangement: ArrangementBase,
     good: Good,
@@ -125,16 +123,12 @@ struct Messages {
 struct Message {
     version: Version!(2, "Message"),
     idk: f32,
-    pos: PatternCursor,
+    pos: OptionalPatternCursor,
     msg: Str,
     desc: Str,
     msg_type: u32,
     idk2: u32,
-    #[brw(if(version.version < 2))]
-    id_old: Option<Uuid>,
-    #[brw(if(version.version > 1))]
-    id: Option<MsgId>,
-    #[brw(if(version.version > 0))]
+    id: MsgId,
     more_info: Str,
 }
 
@@ -149,6 +143,7 @@ struct MsgId {
 #[derive(Debug)]
 pub struct Stock {
     version: Version!(0, "Stock"),
+    #[brw(assert(init.bool))]
     init: Bool,
     idk: u32,
     map: Array<(Good, u32)>,

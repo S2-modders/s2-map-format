@@ -9,6 +9,7 @@ use strum::*;
 #[derive(Debug)]
 pub struct Map {
     version: Version!(0, "MapSystem"),
+    #[brw(assert(init.bool))]
     init: Bool,
     width: u32,
     height: u32,
@@ -25,18 +26,12 @@ pub struct Map {
 #[derive(Debug)]
 struct ElevationMap {
     version: Version!(1, "ElevationMap"),
+    #[brw(assert(init.bool))]
     init: Bool,
     min_elevation: i32,
-    #[brw(if(version.version > 0))]
     width: u32,
-    #[brw(if(version.version > 0))]
     height: u32,
-    #[br(temp)]
-    #[brw(if(version.version == 0))]
-    #[bw(calc = Some(elevations.len() as _))]
-    len: Option<u32>,
-
-    #[br(count = len.unwrap_or(width*height))]
+    #[br(count = width * height)]
     elevations: Vec<i32>,
 }
 
@@ -44,6 +39,7 @@ struct ElevationMap {
 #[derive(Debug)]
 struct PatternMap {
     version: Version!(0, "PatternMap"),
+    #[brw(assert(init.bool))]
     init: Bool,
     patterns: Array<PatternType>,
 }
@@ -52,6 +48,7 @@ struct PatternMap {
 #[derive(Debug)]
 struct GridStatesMap {
     version: Version!(0, "GridStatesMap"),
+    #[brw(assert(init.bool))]
     init: Bool,
     gridstates: Array<GridStates>,
 }
@@ -98,6 +95,7 @@ struct GridStates {
 #[derive(Debug)]
 struct ResourceMap {
     version: Version!(0, "Map Resources"),
+    #[brw(assert(init.bool))]
     init: Bool,
     width: u32,
     height: u32,
@@ -109,6 +107,7 @@ struct ResourceMap {
 #[derive(Debug)]
 struct TerritoryMap {
     version: Version!(0, "Map Territory"),
+    #[brw(assert(init.bool))]
     init: Bool,
     width: u32,
     height: u32,
@@ -120,14 +119,11 @@ struct TerritoryMap {
 #[derive(Debug)]
 struct ExplorationMap {
     version: Version!(1, "Map Exploration"),
+    #[brw(assert(init.bool))]
     init: Bool,
     width: u32,
     height: u32,
     #[br(count = width * height)]
-    #[brw(if(version.version == 0))]
-    exploration_old: [Vec<Bool>; PlayerId::COUNT],
-    #[br(count = width * height)]
-    #[brw(if(version.version > 0))]
     exploration: [Vec<u32>; PlayerId::COUNT],
 }
 
@@ -135,15 +131,14 @@ struct ExplorationMap {
 #[derive(Debug)]
 struct ContinentMap {
     version: Version!(1, "Map Continents"),
+    #[brw(assert(init.bool))]
     init: Bool,
     width: u32,
     height: u32,
     #[br(count = width * height)]
     continentmap: Vec<u32>,
-    condinentdata: Array<Continent>,
-    #[brw(if(version.version > 0))]
-    #[brw(assert(total_continent_tiles.is_none_or(|t| t <= width * height)))]
-    total_continent_tiles: Option<u32>,
+    continentdata: Array<Continent>,
+    total_continent_tiles: u32,
 }
 
 #[binrw]
@@ -151,12 +146,10 @@ struct ContinentMap {
 struct Continent {
     version: Version!(3, "Map Continent"),
     continent_tiles: u32,
+    //TODO is it really an init field?
     init: Bool,
     id: u32,
-    #[brw(if(version.version > 0))]
-    region: Option<(u32, u32, u32, u32)>,
-    #[brw(if(version.version > 1))]
+    region: (u32, u32, u32, u32),
     poses: Array<PatternCursor>,
-    #[brw(if(version.version > 2))]
     adjacent_continents: Array<u32>,
 }
