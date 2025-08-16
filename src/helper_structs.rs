@@ -620,6 +620,16 @@ impl DoodadType {
 #[brw(repr = u32)]
 #[repr(u32)]
 #[derive(Debug)]
+pub enum Tribe {
+    Romans = 0,
+    Africans = 1,
+    Chinese = 2,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[repr(u32)]
+#[derive(Debug)]
 pub enum AnimalType {
     Deer = 0x4a9bef83,
     Rabbit = 0x41797b76,
@@ -628,10 +638,11 @@ pub enum AnimalType {
 
 #[binrw]
 #[derive(derive_more::From, derive_more::Into, Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub struct Versioned2<const MAX_VER: u32, const CRC: u32, const LEN: u32, T, D> where
-        for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
-        for<'a> D: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
-    {
+pub struct Versioned2<const MAX_VER: u32, const CRC: u32, const LEN: u32, T, D>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
+    for<'a> D: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
+{
     version: Version<MAX_VER, CRC, LEN>,
     pub first: T,
     pub secound: D,
@@ -639,18 +650,20 @@ pub struct Versioned2<const MAX_VER: u32, const CRC: u32, const LEN: u32, T, D> 
 
 #[binrw]
 #[derive(derive_more::From, derive_more::Into, Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub struct Versioned<const MAX_VER: u32, const CRC: u32, const LEN: u32, T> where
-        for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
-    {
+pub struct Versioned<const MAX_VER: u32, const CRC: u32, const LEN: u32, T>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
+{
     version: Version<MAX_VER, CRC, LEN>,
     pub data: T,
 }
 
 #[binrw]
 #[derive(derive_more::From, derive_more::Into, Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub struct VersionedI<const MAX_VER: u32, const CRC: u32, const LEN: u32, T> where
-        for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
-    {
+pub struct VersionedI<const MAX_VER: u32, const CRC: u32, const LEN: u32, T>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
+{
     version: VersionI<MAX_VER, CRC, LEN>,
     pub data: T,
 }

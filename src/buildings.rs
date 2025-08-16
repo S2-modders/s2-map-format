@@ -36,7 +36,7 @@ pub struct Building {
     production: Production,
     blocking: Blocking,
     idk3: u32,
-    tribe: u32,
+    tribe: Tribe,
     flag_ref: Ref<Flag>,
     settler_spawn: SettlerSpawn,
     mining_pos: OptionalPatternCursor,

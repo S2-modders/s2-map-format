@@ -22,3 +22,9 @@ struct Doodad {
     #[brw(if(doodad_type.has_lifetime()))]
     lifetime: Option<u32>,
 }
+
+impl Ided for Doodad {
+    fn id(&self) -> Uuid {
+        self.id
+    }
+}

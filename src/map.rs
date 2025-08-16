@@ -98,7 +98,7 @@ struct ExplorationMap {
     width: u32,
     height: u32,
     #[br(count = width * height)]
-    exploration: [Vec<u32>; PlayerId::COUNT],
+    explored: [Vec<Bool>; PlayerId::COUNT],
 }
 
 #[binrw]

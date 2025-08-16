@@ -18,7 +18,7 @@ pub struct Player {
     id: PlayerId,
     idk: u32,
     idk2: u32,
-    tribe: u32,
+    tribe: Tribe,
     locksmith: LockSmith,
     good_priority: VersionedI!(0, "Good Priorities", Array<GoodPriority>),
     good_arrangement: VersionedI!(0, "Good Arrangement", Array<GoodArrangementGroup>),
