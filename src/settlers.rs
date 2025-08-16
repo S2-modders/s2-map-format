@@ -10,7 +10,7 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Settlers {
-    version: VersionI!(0, "SettlersSystem"),
+    version: VersionI!("SettlersSystem"),
     workers: Array<(PlayerId, Worker)>,
     constructor: Array<(PlayerId, Constructor)>,
     carrier: Array<(PlayerId, Carrier)>,
@@ -38,7 +38,7 @@ impl Ided for Worker {
 #[binrw]
 #[derive(Debug)]
 pub struct Constructor {
-    version: Version!(0, "SettlersConstructor"),
+    version: Version!("SettlersConstructor"),
     test: [u32; 6], //TODO: filler -- decompiling goals takes too long
     work_building_ref: Ref<Building>,
     settler: Settler,
@@ -53,7 +53,7 @@ impl Ided for Constructor {
 #[binrw]
 #[derive(Debug)]
 pub struct Carrier {
-    version: Version!(0, "SettlersCarrier"),
+    version: Version!("SettlersCarrier"),
     test: [u32; 9], //TODO: filler -- decompiling goals takes too long
     idk: Bool,
     package_ref: Ref<Package>,
@@ -69,7 +69,7 @@ impl Ided for Carrier {
 #[binrw]
 #[derive(Debug)]
 pub struct Bulldozer {
-    version: Version!(0, "SettlersBulldozer"),
+    version: Version!("SettlersBulldozer"),
     test: [u32; 2], //TODO: filler -- decompiling goals takes too long
     building_ref: Ref<Building>,
     settler: Settler,
@@ -105,7 +105,7 @@ impl Ided for Soldier {
 #[binrw]
 #[derive(Debug)]
 struct LivePoints {
-    version: Version!(0, "SettlersLivePoints"),
+    version: Version!("SettlersLivePoints"),
     idk: f32,
     idk2: u32,
 }
@@ -113,7 +113,7 @@ struct LivePoints {
 #[binrw]
 #[derive(Debug)]
 pub struct Specialist {
-    version: Version!(0, "SettlersSpecialist"),
+    version: Version!("SettlersSpecialist"),
     #[br(dbg)]
     test: [u32; 20], //TODO: filler -- decompiling goals takes too long -- not tested if right size
     idk: u32,
@@ -130,7 +130,7 @@ impl Ided for Specialist {
 #[binrw]
 #[derive(Debug)]
 pub struct Settler {
-    version: Version!(0, "Settlers Settler"),
+    version: Version!("Settlers Settler"),
     id: Uuid,
     movement: SettlerMovement,
     animation: Animation,

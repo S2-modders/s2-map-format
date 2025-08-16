@@ -13,7 +13,7 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Villages {
-    version: VersionI!(0, "VillageSystem"),
+    version: VersionI!("VillageSystem"),
     buildings: Array<Building>,
     remains: Array<Remains>,
     orders: Orders,
@@ -29,7 +29,7 @@ pub struct Building {
     pos: PatternCursor,
     ticker: Ticker,
     depot: Depot,
-    workers: Versioned!(0, "VillageWorkers", Array<Ref<Worker>>),
+    workers: Versioned!("VillageWorkers", Array<Ref<Worker>>),
     deposit_ref: Ref<Deposit>,
     animal_ref: Ref<Animal>,
     construction: Construction,
@@ -42,12 +42,12 @@ pub struct Building {
     mining_pos: OptionalPatternCursor,
     territory_updater: TerritoryUpdater,
     bulldozing: Bulldozing,
-    order: Versioned!(0, "Order Container", Array<Ref<Order>>),
+    order: Versioned!("Order Container", Array<Ref<Order>>),
     idk5: Bool,
     #[brw(if(matches!(building_type, Castle | Barracks | GuardHouse | Tower | WatchTower | Fortress)))]
     military: Option<VillageMilitary>,
     carrier_refresh: CarrierRefresh,
-    good_flags: Versioned!(0, "VillageGoodFlags", Array<GoodFlags>),
+    good_flags: Versioned!("VillageGoodFlags", Array<GoodFlags>),
     idk6: u32,
     tick: u32,
     #[brw(if(matches!(building_type, Catapult)))]
@@ -66,7 +66,7 @@ impl Ided for Building {
 #[binrw]
 #[derive(Debug)]
 struct Ticker {
-    version: Version!(0, "ticker"),
+    version: Version!("ticker"),
     curr_tick: u32,
     target_tick: u32,
 }
@@ -74,10 +74,10 @@ struct Ticker {
 #[binrw]
 #[derive(Debug)]
 struct Depot {
-    version: Version!(0, "VillageDepot"),
+    version: Version!("VillageDepot"),
     stock1: Stock,
     stock2: Stock,
-    needed_goods: Versioned!(0, "Need Good System", Array<Package>),
+    needed_goods: Versioned!("Need Good System", Array<Package>),
     returning_goods: Versioned!(
         0,
         "Returning Good System",
@@ -115,14 +115,14 @@ struct Production {
 #[binrw]
 #[derive(Debug)]
 struct SettlerSpawn {
-    version: Version!(0, "Village SettlerSpawn"),
+    version: Version!("Village SettlerSpawn"),
     idk: u32, //TODO
 }
 
 #[binrw]
 #[derive(Debug)]
 struct TerritoryUpdater {
-    version: Version!(0, "Village Territory Updater"),
+    version: Version!("Village Territory Updater"),
     init: Bool,
 }
 
@@ -140,28 +140,28 @@ struct Bulldozing {
 #[derive(Debug)]
 struct VillageMilitary {
     version: Version!(2, "Village Military"),
-    soldiers: Versioned!(0, "VillageSoldiers", SettlersContainer),
-    attackers: Versioned!(0, "Village Attackers", SettlersContainer),
+    soldiers: Versioned!("VillageSoldiers", SettlersContainer),
+    attackers: Versioned!("Village Attackers", SettlersContainer),
     enemy_distance: u32,
     idk: f32,
     enable_coin_supply: Bool,
     idk2: u32,
     soldier_rserve: [u32; 5],
-    interceptors: Versioned!(0, "Village Interceptors", SettlersContainer),
+    interceptors: Versioned!("Village Interceptors", SettlersContainer),
     coin_supply2: Bool,
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct SettlersContainer {
-    version: Version!(0, "Settlers Container"),
+    version: Version!("Settlers Container"),
     settlers: Array<Ref<Settler>>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct CarrierRefresh {
-    version: Version!(0, "Village CarrierRefresh"),
+    version: Version!("Village CarrierRefresh"),
     idk: u32, //TODO
 }
 
@@ -176,7 +176,7 @@ struct GoodFlags {
 #[binrw]
 #[derive(Debug)]
 struct Catapult {
-    version: Version!(0, "Village Catapult"),
+    version: Version!("Village Catapult"),
     target: OptionalPatternCursor,
     target_radomized: OptionalPatternCursor,
     time_next_direction_set: f32,
@@ -192,20 +192,20 @@ struct Harbor {
     landing_positions: Array<LandingPosition>,
     idk: u32,
     expedition: Expedition,
-    orders: Versioned!(0, "Order Container", Array<Ref<Order>>),
+    orders: Versioned!("Order Container", Array<Ref<Order>>),
     harbor_receivers: Array<HarborReceiver>,
     ship_ref: Ref<Ship>,
     settlers: SettlersContainer,
     idk2: u32,
-    needs_transfer0: Version!(0, "Village HarboarNeedsTransfer"),
-    needs_transfer1: Version!(0, "Village HarboarNeedsTransfer"),
-    needs_transfer2: Version!(0, "Village HarboarNeedsTransfer"),
+    needs_transfer0: Version!("Village HarboarNeedsTransfer"),
+    needs_transfer1: Version!("Village HarboarNeedsTransfer"),
+    needs_transfer2: Version!("Village HarboarNeedsTransfer"),
 }
 
 #[binrw]
 #[derive(Debug)]
 struct LandingPosition {
-    version: Version!(0, "Village Landing Position"),
+    version: Version!("Village Landing Position"),
     ship_ref0: Ref<Ship>,
     ship_ref1: Ref<Ship>,
     pos: PatternCursor,
@@ -214,7 +214,7 @@ struct LandingPosition {
 #[binrw]
 #[derive(Debug)]
 struct Expedition {
-    version: Version!(0, "Village Expedition"),
+    version: Version!("Village Expedition"),
     expedition_state: u32,
     stock: Stock,
     ship_ref: Ref<Ship>,
@@ -224,7 +224,7 @@ struct Expedition {
 #[binrw]
 #[derive(Debug)]
 struct HarborReceiver {
-    version: Version!(0, "Village HarborReceiver"),
+    version: Version!("Village HarborReceiver"),
     idk: u32, //TODO
     building_ref: Ref<Building>,
 }
@@ -232,7 +232,7 @@ struct HarborReceiver {
 #[binrw]
 #[derive(Debug)]
 struct Upgrade {
-    version: Version!(0, "VillageUpgrade"),
+    version: Version!("VillageUpgrade"),
     init: Bool,
     #[brw(if(init.bool))]
     idk: u32,
@@ -255,9 +255,19 @@ struct Remains {
 }
 
 #[binrw]
+#[brw(repr = u32)]
+#[repr(u32)]
+#[derive(Debug)]
+pub enum RemainsType {
+    Small = 0xd862d443,
+    Medium = 0x122489b3,
+    Large = 0x595400e3,
+}
+
+#[binrw]
 #[derive(Debug)]
 struct Blocking {
-    version: VersionI!(0, "Blocking"),
+    version: VersionI!("Blocking"),
     pos: PatternCursor,
     size: u32, //TODO
 }

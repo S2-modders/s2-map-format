@@ -26,17 +26,37 @@ pub struct MapFile {
     pub map: Map,
     pub resources: Resources,
     pub doodads: Doodads,
-    pub ambients: VersionedI!(0, "Logic Ambients", Array<(AmbientType, PatternCursor)>),
+    pub ambients: VersionedI!("Logic Ambients", Array<(AmbientType, PatternCursor)>),
     #[brw(if(mapinfo.file_type == FileType::SaveGame))]
     pub gamefilelogic: Option<GameFileLogic>,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[repr(u32)]
+#[derive(Debug)]
+pub enum AmbientType {
+    Beach = 0x5bdc4873,
+    Desert1 = 0xdf5602f3,
+    Desert2 = 0x67ef3d13,
+    Desert3 = 0x31f23a23,
+    Forest1 = 0x89f59a23,
+    Forest2 = 0x118e5363,
+    Meadow1 = 0x5aaad2d3,
+    Meadow2 = 0x623437d3,
+    Water1 = 0xf35757d3,
+    Water2 = 0x3b68a763,
+    Water3 = 0x00a67113,
+    Water4 = 0x875d51f3,
+    Lava = 0xa952bba3,
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct GameFileLogic {
     version: Version!(2, "Game File Logic"),
-    pub random: VersionedI!(0, "Logic Random", u64),
-    pub players: VersionedI!(0, "PlayerSystem", [Optional<Player>; PlayerId::COUNT]),
+    pub random: VersionedI!("Logic Random", u64),
+    pub players: VersionedI!("PlayerSystem", [Optional<Player>; PlayerId::COUNT]),
     pub villages: Villages,
     pub settlers: Settlers,
     pub transport: Transport,
@@ -52,7 +72,7 @@ pub struct GameFileLogic {
 #[binrw]
 #[derive(Debug)]
 pub struct Stats {
-    version: Version!(0, "LogicStatistics"),
+    version: Version!("LogicStatistics"),
     idk: u32,
     stats: Array<(Uuid, u32, f32, u32)>,
     player_stats: [PlayerStats; PlayerId::COUNT],
@@ -72,7 +92,7 @@ struct PlayerStats {
 #[binrw]
 #[derive(Debug)]
 pub struct GameScript {
-    version: VersionI!(0, "GameScript"),
+    version: VersionI!("GameScript"),
     map_name: Str,
     persistent: Array<(Str, u32)>,
 }
@@ -87,7 +107,7 @@ pub struct Logic {
     pub duration_between_ticks: Time,
     pub time_ticked: Time,
     pub time_passed: Time,
-    pub trigger_sys: VersionedI!(0, "TriggerSystem", Array<Trigger>),
+    pub trigger_sys: VersionedI!("TriggerSystem", Array<Trigger>),
     pub tick: i32,
 }
 

@@ -10,16 +10,96 @@ use strum::*;
 #[binrw]
 #[derive(Debug)]
 pub struct Map {
-    version: VersionI!(0, "MapSystem"),
+    version: VersionI!("MapSystem"),
     width: u32,
     height: u32,
     elevation_map: ElevationMap,
-    pattern_map: VersionedI!(0, "PatternMap", Array<PatternType>),
-    gird_state_map: VersionedI!(0, "GridStatesMap", Array<GridStates>),
+    pattern_map: VersionedI!("PatternMap", Array<PatternType>),
+    gird_state_map: VersionedI!("GridStatesMap", Array<GridStates>),
     resource_map: ResourceMap,
     territory_map: TerritoryMap,
     exploration_map: ExplorationMap,
     contient_map: ContinentMap,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[repr(u32)]
+#[derive(Debug)]
+pub enum PatternType {
+    PatternBorder = 0x76d31873,
+    PatternWater = 0xfe6bd1b3,
+    PatternAcre = 0xca56701a,
+    PatternMeadow = 0xbfe4e8e3,
+    PatternMeadow1 = 0x4545fac1,
+    PatternMeadow2 = 0x4545fac2,
+    PatternMeadow3 = 0x4545fac3,
+    PatternMeadow4 = 0x4545fac4,
+    PatternMeadow5 = 0x4545fac5,
+    PatternMeadow6 = 0x4545fac6,
+    PatternMeadow7 = 0x4545fac7,
+    PatternMeadow9 = 0x4545fac9,
+    PatternSand = 0xbadeb00d,
+    PatternSand1 = 0xbadeb00e,
+    PatternSand2 = 0xbadeb00f,
+    PatternSand3 = 0xbadeb010,
+    PatternSand4 = 0xbadeb011,
+    PatternSand5 = 0xbadeb012,
+    PatternSand6 = 0xbadeb013,
+    PatternRock = 0xd00faffe,
+    PatternRock1 = 0xdeadbeef,
+    PatternRock2 = 0xcafecafe,
+    PatternRock3 = 0xcafecaff,
+    PatternRock4 = 0xcafecb00,
+    PatternRock5 = 0xcafecb01,
+    PatternRock6 = 0xcafecb02,
+    PatternRock7 = 0xcafecb03,
+    PatternRock8 = 0xcafecb04,
+    PatternRock9 = 0xcafecb05,
+    PatternSnow = 0xfade0ff,
+    PatternSeaground = 0xbabeb00b,
+    PatternSeaground1 = 0x13374e4,
+    PatternSeaground2 = 0x13374e5,
+    PatternSeaground3 = 0x13374e6,
+    PatternSeaground4 = 0x13374e7,
+    PatternSeaground5 = 0x13374e8,
+    PatternSwamp = 0x680004e4,
+    PatternSwamp1 = 0x680004e5,
+    PatternSwamp2 = 0x680004e6,
+    PatternPavement = 0xdecade01,
+    PatternGround = 0xde5e1110,
+    PatternEarth1 = 0x777fa8c0,
+    PatternLGround00 = 0xdecade02,
+    PatternLGround01 = 0xdecade03,
+    PatternLRock00 = 0xdecade04,
+    PatternLRock01 = 0xdecade05,
+    PatternLRock02 = 0xdecade06,
+    PatternLRock03 = 0xca87fab0,
+    PatternLGround02 = 0xdecade07,
+    PatternLGround03 = 0xdecade08,
+    PatternLGround04 = 0xdecade09,
+    PatternLGround05 = 0xdecade0a,
+    PatternLSand00 = 0xf1cabb70,
+    PatternLMeadow00 = 0xf67adb70,
+    PatternMMeadow00 = 0xfa1ca560,
+    PatternMMeadow01 = 0xfa1ca561,
+    PatternMMeadow02 = 0xfa1ca562,
+    PatternMMeadow03 = 0xfa1ca563,
+    PatternMGround00 = 0xfa1ca570,
+    PatternMGround01 = 0xfa1ca571,
+    PatternMRock00 = 0xfa1ca580,
+    PatternMRock01 = 0xfa1ca581,
+    PatternMRock02 = 0xfa1ca582,
+    PatternMRock03 = 0xfa1ca583,
+    PatternMRock04 = 0xfa1ca584,
+    PatternMRock05 = 0xfa1ca585,
+    PatternMRock06 = 0xfa1ca586,
+    PatternMRock07 = 0xfa1ca587,
+    PatternMRock08 = 0xfa1ca588,
+    PatternMRock09 = 0xfa1ca589,
+    PatternMRock10 = 0xfa1ca58a,
+    PatternMSeaground00 = 0xfa1ca590,
+    PatternMSeaground01 = 0xfa1ca591,
 }
 
 #[binrw]
@@ -74,7 +154,7 @@ struct GridStates {
 #[binrw]
 #[derive(Debug)]
 struct ResourceMap {
-    version: VersionI!(0, "Map Resources"),
+    version: VersionI!("Map Resources"),
     width: u32,
     height: u32,
     #[br(count = width*height)]
@@ -84,7 +164,7 @@ struct ResourceMap {
 #[binrw]
 #[derive(Debug)]
 struct TerritoryMap {
-    version: VersionI!(0, "Map Territory"),
+    version: VersionI!("Map Territory"),
     width: u32,
     height: u32,
     #[br(count = width * height)]

@@ -8,16 +8,16 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Transport {
-    version: VersionI!(0, "Transport System"),
+    version: VersionI!("Transport System"),
     packages: Packages,
-    package_needs: VersionedI!(0, "Transport PackageNeedSystem", Array<PackageNeedTarget>),
-    building_needs: VersionedI!(0, "Transport BuildingNeedSystem", Array<BuildingNeedGood>),
+    package_needs: VersionedI!("Transport PackageNeedSystem", Array<PackageNeedTarget>),
+    building_needs: VersionedI!("Transport BuildingNeedSystem", Array<BuildingNeedGood>),
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Packages {
-    version: VersionI!(0, "Package System"),
+    version: VersionI!("Package System"),
     package: Array<(PlayerId, Package)>,
 }
 
@@ -50,7 +50,7 @@ impl Ided for Package {
 #[binrw]
 #[derive(Debug)]
 struct PackageNeedTarget {
-    version: Version!(0, "Transport PackageNeedTarget"),
+    version: Version!("Transport PackageNeedTarget"),
     package_ref: Ref<Package>,
     building_ref: Ref<Building>,
 }

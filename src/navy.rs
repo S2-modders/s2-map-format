@@ -10,7 +10,7 @@ pub struct Ship {
     version: Version!(3, "Navy Ship"),
     id: Uuid,
     construction: Construction,
-    path: Versioned!(0, "Navy Path", PathBase),
+    path: Versioned!("Navy Path", PathBase),
     stock: Stock,
     building_ref: Ref<Building>,
     idk: u32,
@@ -39,7 +39,7 @@ struct Construction {
 #[binrw]
 #[derive(Debug)]
 struct Expedition {
-    version: Version!(0, "Navy Expedtion"),
+    version: Version!("Navy Expedtion"),
     building_ref: Ref<Building>,
     pos: PatternCursor,
     idk: Bool,
@@ -49,7 +49,7 @@ struct Expedition {
 #[binrw]
 #[derive(Debug)]
 struct ShipReceiver {
-    version: Version!(0, "Navy ShipReceiver"),
+    version: Version!("Navy ShipReceiver"),
     receivers: Array<(Good, BuildingType)>,
     building_ref: Ref<Building>,
 }

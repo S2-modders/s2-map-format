@@ -20,7 +20,7 @@ pub struct SettlerMovement {
 #[derive(Debug)]
 pub struct AnimalMovement {
     version: Version!(1, "Navy Movement"),
-    path: Versioned!(0, "Resources Path", PathBase),
+    path: Versioned!("Resources Path", PathBase),
     pos: PatternCursor,
     movement_base: Base,
 }
@@ -43,7 +43,7 @@ pub struct PathBase {
 #[binrw]
 #[derive(Debug, Default)]
 struct Base {
-    version: Version!(0, "Movement Base"),
+    version: Version!("Movement Base"),
     pos: PatternCursor,
     idk: PatternCursor,
     idk1: OptionalPatternCursor,
@@ -53,7 +53,7 @@ struct Base {
 #[binrw]
 #[derive(Debug)]
 struct Rough {
-    version: Version!(0, "Movement Rough"),
+    version: Version!("Movement Rough"),
     init: Bool,
     pos0: OptionalPatternCursor,
     pos1: OptionalPatternCursor,
@@ -65,7 +65,7 @@ struct Rough {
 #[binrw]
 #[derive(Debug)]
 struct Path {
-    version: Version!(0, "Path"),
+    version: Version!("Path"),
     idk: u32,
     pos: OptionalPatternCursor,
     free_path: FreePath,
@@ -75,7 +75,7 @@ struct Path {
 #[binrw]
 #[derive(Debug)]
 struct FreePath {
-    version: Version!(0, "Movement Free Path"),
+    version: Version!("Movement Free Path"),
     init: Bool,
     path_base: PathBase,
 }
@@ -83,7 +83,7 @@ struct FreePath {
 #[binrw]
 #[derive(Debug)]
 struct StreetPath {
-    version: Version!(0, "Movement Street Path"),
+    version: Version!("Movement Street Path"),
     idk0: Bool,
     idk1: Bool,
     idk2: Bool,
@@ -109,7 +109,7 @@ struct Fine {
 #[binrw]
 #[derive(Debug)]
 struct FinePath {
-    version: Version!(0, "Movement Fine Path"),
+    version: Version!("Movement Fine Path"),
     init: Bool,
     path: Array<ElevationCursor>,
     idk: Bool,
@@ -119,7 +119,7 @@ struct FinePath {
 #[binrw]
 #[derive(Debug, Default)]
 struct Interpolator {
-    version: Version!(0, "Movement Interpolator"),
+    version: Version!("Movement Interpolator"),
     idk1: f32,
     idk2: f32,
     idk3: f32,

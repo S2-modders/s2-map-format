@@ -6,6 +6,12 @@ use strum::*;
 
 #[macro_export]
 macro_rules! Versioned {
+    ($name:literal, $ty:ty, $ty2:ty) => {
+        Versioned2<0, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}, $ty, $ty2>
+    };
+    ($name:literal, $ty:ty) => {
+            Versioned<0, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}, $ty>
+    };
     ($MAX_VER:literal, $name:literal, $ty:ty, $ty2:ty) => {
         Versioned2<$MAX_VER, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}, $ty, $ty2>
     };
@@ -16,6 +22,9 @@ macro_rules! Versioned {
 
 #[macro_export]
 macro_rules! VersionedI {
+    ($name:literal, $ty:ty) => {
+        VersionedI<0, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}, $ty>
+    };
     ($MAX_VER:literal, $name:literal, $ty:ty) => {
         VersionedI<$MAX_VER, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}, $ty>
     };
@@ -23,6 +32,9 @@ macro_rules! VersionedI {
 
 #[macro_export]
 macro_rules! VersionI {
+    ($name:literal) => {
+        VersionI<0, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}>
+    };
     ($MAX_VER:literal, $name:literal) => {
         VersionI<$MAX_VER, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}>
     };
@@ -30,12 +42,15 @@ macro_rules! VersionI {
 
 #[macro_export]
 macro_rules! Version {
+    ($name:literal) => {
+        Version<0, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}>
+    };
     ($MAX_VER:literal, $name:literal) => {
         Version<$MAX_VER, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}>
     };
 }
 
-//TODO: versioned option, nonmax uuid
+//TODO: named, positioned, owned
 #[binrw]
 #[derive(Default, derive_more::From)]
 pub struct Str {
@@ -203,16 +218,6 @@ impl fmt::Debug for Uuid {
 
 #[binrw]
 #[brw(repr = u32)]
-#[derive(Debug)]
-pub enum AiType {
-    None = -1,
-    Weak = 1,
-    Normal = 2,
-    Strong = 3,
-}
-
-#[binrw]
-#[brw(repr = u32)]
 #[repr(u32)]
 #[derive(Debug)]
 pub enum Good {
@@ -291,349 +296,10 @@ pub enum Good {
 #[brw(repr = u32)]
 #[repr(u32)]
 #[derive(Debug)]
-pub enum PatternType {
-    PatternBorder = 0x76d31873,
-    PatternWater = 0xfe6bd1b3,
-    PatternAcre = 0xca56701a,
-    PatternMeadow = 0xbfe4e8e3,
-    PatternMeadow1 = 0x4545fac1,
-    PatternMeadow2 = 0x4545fac2,
-    PatternMeadow3 = 0x4545fac3,
-    PatternMeadow4 = 0x4545fac4,
-    PatternMeadow5 = 0x4545fac5,
-    PatternMeadow6 = 0x4545fac6,
-    PatternMeadow7 = 0x4545fac7,
-    PatternMeadow9 = 0x4545fac9,
-    PatternSand = 0xbadeb00d,
-    PatternSand1 = 0xbadeb00e,
-    PatternSand2 = 0xbadeb00f,
-    PatternSand3 = 0xbadeb010,
-    PatternSand4 = 0xbadeb011,
-    PatternSand5 = 0xbadeb012,
-    PatternSand6 = 0xbadeb013,
-    PatternRock = 0xd00faffe,
-    PatternRock1 = 0xdeadbeef,
-    PatternRock2 = 0xcafecafe,
-    PatternRock3 = 0xcafecaff,
-    PatternRock4 = 0xcafecb00,
-    PatternRock5 = 0xcafecb01,
-    PatternRock6 = 0xcafecb02,
-    PatternRock7 = 0xcafecb03,
-    PatternRock8 = 0xcafecb04,
-    PatternRock9 = 0xcafecb05,
-    PatternSnow = 0xfade0ff,
-    PatternSeaground = 0xbabeb00b,
-    PatternSeaground1 = 0x13374e4,
-    PatternSeaground2 = 0x13374e5,
-    PatternSeaground3 = 0x13374e6,
-    PatternSeaground4 = 0x13374e7,
-    PatternSeaground5 = 0x13374e8,
-    PatternSwamp = 0x680004e4,
-    PatternSwamp1 = 0x680004e5,
-    PatternSwamp2 = 0x680004e6,
-    PatternPavement = 0xdecade01,
-    PatternGround = 0xde5e1110,
-    PatternEarth1 = 0x777fa8c0,
-    PatternLGround00 = 0xdecade02,
-    PatternLGround01 = 0xdecade03,
-    PatternLRock00 = 0xdecade04,
-    PatternLRock01 = 0xdecade05,
-    PatternLRock02 = 0xdecade06,
-    PatternLRock03 = 0xca87fab0,
-    PatternLGround02 = 0xdecade07,
-    PatternLGround03 = 0xdecade08,
-    PatternLGround04 = 0xdecade09,
-    PatternLGround05 = 0xdecade0a,
-    PatternLSand00 = 0xf1cabb70,
-    PatternLMeadow00 = 0xf67adb70,
-    PatternMMeadow00 = 0xfa1ca560,
-    PatternMMeadow01 = 0xfa1ca561,
-    PatternMMeadow02 = 0xfa1ca562,
-    PatternMMeadow03 = 0xfa1ca563,
-    PatternMGround00 = 0xfa1ca570,
-    PatternMGround01 = 0xfa1ca571,
-    PatternMRock00 = 0xfa1ca580,
-    PatternMRock01 = 0xfa1ca581,
-    PatternMRock02 = 0xfa1ca582,
-    PatternMRock03 = 0xfa1ca583,
-    PatternMRock04 = 0xfa1ca584,
-    PatternMRock05 = 0xfa1ca585,
-    PatternMRock06 = 0xfa1ca586,
-    PatternMRock07 = 0xfa1ca587,
-    PatternMRock08 = 0xfa1ca588,
-    PatternMRock09 = 0xfa1ca589,
-    PatternMRock10 = 0xfa1ca58a,
-    PatternMSeaground00 = 0xfa1ca590,
-    PatternMSeaground01 = 0xfa1ca591,
-}
-
-#[binrw]
-#[brw(repr = u32)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum AmbientType {
-    Beach = 0x5bdc4873,
-    Desert1 = 0xdf5602f3,
-    Desert2 = 0x67ef3d13,
-    Desert3 = 0x31f23a23,
-    Forest1 = 0x89f59a23,
-    Forest2 = 0x118e5363,
-    Meadow1 = 0x5aaad2d3,
-    Meadow2 = 0x623437d3,
-    Water1 = 0xf35757d3,
-    Water2 = 0x3b68a763,
-    Water3 = 0x00a67113,
-    Water4 = 0x875d51f3,
-    Lava = 0xa952bba3,
-}
-
-#[binrw]
-#[brw(repr = u32)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum RemainsType {
-    Small = 0xd862d443,
-    Medium = 0x122489b3,
-    Large = 0x595400e3,
-}
-
-#[binrw]
-#[brw(repr = u32)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum DepositType {
-    Tree01 = 0x7e99ce73,
-    Tree02 = 0x063287b3,
-    Tree03 = 0x489ccb83,
-    Tree04 = 0x119f47b3,
-    Tree05 = 0xe6cf21d3,
-    Tree06 = 0xadef44c3,
-    Tree07 = 0x732d0e73,
-    Tree08 = 0xe6cf0e73,
-    Tree09 = 0xe7cf1e74,
-    Tree10 = 0xe8cf2e75,
-    Tree11 = 0xe8cf2e76,
-    Tree12 = 0xe8cf2e77,
-    Tree13 = 0xe8cf2e78,
-    TreeLava01 = 0xe8cf2e79,
-    TreeLava02 = 0xe8cf2e7a,
-    TreeLava03 = 0xe8cf2e7b,
-    Tree14 = 0xe8cf2e7c,
-    Field01 = 0xdfed4c9e,
-    Stone01 = 0x9f1bd60e,
-    Stone02 = 0x5bb1115e,
-    Stone03 = 0x21ef5bee,
-    Stone04 = 0x1946cd8e,
-    Stone05 = 0x5d936a9e,
-    Stone06 = 0xe42ba2fe,
-    MedStone01 = 0x1dab7fd0,
-    MedStone02 = 0x1dab7fd1,
-    MedStone03 = 0x1dab7fd2,
-    MedStone04 = 0x1dab7fd3,
-    MedStone05 = 0x1dab7fd4,
-    MedStone06 = 0x1dab7fd5,
-}
-#[binrw]
-#[brw(repr = u32)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum BuildingType {
-    Empty = u32::MAX, //TODO: requered for Ai constructon order
-    Castle = 0xf6e26cb3,
-    WoodCutter = 0x5a926fa3,
-    Forester = 0x3ff43d23,
-    StonePit = 0x043185f3,
-    Fisher = 0x3ef3bc43,
-    Hunter = 0x3c10e223,
-    Spring = 0xc2c7c303,
-    Barracks = 0xa7bbc573,
-    GuardHouse = 0x12e67603,
-    Tower = 0x7d00b493,
-    IronMine = 0x18282bd3,
-    GoldMine = 0x154c1dae,
-    CoalMine = 0x9b027dae,
-    StoneMine = 0x6222a09e,
-    SawMill = 0x918ff373,
-    Mill = 0xf7e2ed93,
-    Bakery = 0x0af7bb13,
-    SlaughterHouse = 0x5c5e9743,
-    Smeltery = 0x154551b3,
-    Locksmithery = 0xfaada31e,
-    Depot = 0xb3965083,
-    ShipYard = 0x78f8184e,
-    Brewery = 0xfbca3a8e,
-    Smithy = 0xb779ab83,
-    Mint = 0xbc203663,
-    Catapult = 0xa1445ef3,
-    WatchTower = 0x281f0783,
-    Farm = 0x07f63873,
-    Piggery = 0xa6c72ede,
-    DonkeyBreeding = 0x1f0fcd1e,
-    Fortress = 0x8c137e93,
-    Harbor = 0xcf526ff3,
-    Construction = 0x4a2ce4de,
-}
-
-#[binrw]
-#[brw(repr = u32)]
-#[repr(u32)]
-#[derive(Debug, Clone, Copy)]
-pub enum DoodadType {
-    Bush0 = 0x6b272ede,
-    Stones0 = 0x455c1f4e,
-    Stones1 = 0xea36023e,
-    Stones2 = 0x9f41d88e,
-    Stones3 = 0xa7cbbe6e,
-    Stones4 = 0x455c1f4f,
-    Stones5 = 0xea36023f,
-    Stones6 = 0x9f41d88f,
-    Stones7 = 0xa7cbbe6f,
-    Deadtree0 = 0xf2bfe81e,
-    Deadtree1 = 0xf2bfe81f,
-    Bones0 = 0xd5f5a79d,
-    Bones1 = 0x175122cd,
-    Bones2 = 0x7245a4ad,
-    Bones3 = 0x37836e5d,
-    Grass0 = 0x3ad137ae,
-    Grass1 = 0x3ad137af,
-    Grass2 = 0x3ad137b0,
-    Grass3 = 0x3ad137b1,
-    Mushroom0 = 0xacadeff0,
-    Mushroom1 = 0xacadeff1,
-    Mushroom2 = 0xacadeff2,
-    Mushroom3 = 0xacadeff3,
-    Plants0 = 0x482050ee,
-    Plants1 = 0xa3068b0e,
-    Plants2 = 0xec185b7e,
-    Plants3 = 0xfb49cdfe,
-    Plants4 = 0x04d434be,
-    Plants5 = 0xa12431ce,
-    Plants6 = 0x89f5ae33,
-    Plants7 = 0x89f5ae34,
-    Plants8 = 0x89f5ae35,
-    Plants9 = 0x89f5ae36,
-    Plants10 = 0x89f5ae37,
-    Plants11 = 0x89f5ae38,
-    Plants12 = 0x89f5ae39,
-    Swamp0 = 0xfadebee1,
-    Swamp1 = 0xfadebee2,
-    Swamp2 = 0xfadebee3,
-    Swamp3 = 0xfadebee4,
-    Swamp4 = 0xfadebee5,
-    Gate0 = 0xfadebee6,
-    Agave0 = 0x8fa67cf0,
-    Agave1 = 0x8fa67cf1,
-    Agave2 = 0x8fa67cf2,
-    EmptySign = 0x28f42343,
-    WaterSign = 0x121aa343,
-    CoalSignS = 0x90eeb793,
-    CoalSignM = 0xc5096143,
-    CoalSignL = 0x00ad6ff3,
-    IronSignS = 0x45dbe563,
-    IronSignM = 0xd33a52e3,
-    IronSignL = 0x4b82f123,
-    GoldSignS = 0x96771ad3,
-    GoldSignM = 0xe06ac3a3,
-    GoldSignL = 0xe812d123,
-    GranitSignS = 0x3124a193,
-    GranitSignM = 0x8ecf0d53,
-    GranitSignL = 0x17684773,
-    Greenery0 = 0xfa1afe1,
-    Greenery1 = 0xfa1afe2,
-    Greenery2 = 0xfa1afe3,
-    Greenery3 = 0xfa1afe4,
-    Greenery4 = 0xfa1afe5,
-    Greenery5 = 0xfa1afe6,
-    Greenery6 = 0xfa1afe7,
-    Greenery7 = 0xfa1afe8,
-    Greenery8 = 0xfa1afe9,
-    Greenery9 = 0xfa1afea,
-    Greenery10 = 0xfa1afeb,
-    Greenery11 = 0xfa1afec,
-    Greenery12 = 0xfa1afed,
-    Greenery13 = 0xfa1afee,
-    Greenery14 = 0xfa1afef,
-    Greenery15 = 0xfa1aff0,
-    Greenery16 = 0xfa1aff1,
-    Fingerpost0 = 0xaaa0f1e0,
-    Fingerpost1 = 0xaaa0f1e1,
-    Fingerpost2 = 0xaaa0f1e2,
-    Fingerpost3 = 0xaaa0f1e3,
-    Fingerpost4 = 0xaaa0f1e4,
-    Fingerpost5 = 0xaaa0f1e5,
-    Fingerpost6 = 0xaaa0f1e6,
-    Fingerpost7 = 0xaaa0f1e7,
-    Rock0 = 0x6fafe0a0,
-    Rock1 = 0x6fafe0a1,
-    Rock2 = 0x6fafe0a2,
-    Rock3 = 0x6fafe0a3,
-    Wreck0 = 0xfa11e210,
-    Wreck1 = 0xfa11e211,
-    Shell0 = 0xfa11e310,
-    Shell1 = 0xfa11e311,
-    Lavarock0 = 0xcaffeea0,
-    Lavarock1 = 0xcaffeea1,
-    Lavarock2 = 0xcaffeea2,
-    Lavafog1 = 0xaaff17c0,
-    Lavafog2 = 0xaaff17c1,
-    Lavafog3 = 0xaaff17c2,
-    Lavafog4 = 0xaaff17c3,
-    Medrock0 = 0xfa91c0a0,
-    Medrock1 = 0xfa91c0a1,
-    Medrock2 = 0xfa91c0a2,
-    Medrock3 = 0xfa91c0a3,
-    MedGreenery0 = 0xbca74230,
-    MedGreenery1 = 0xbca74231,
-    MedGreenery2 = 0xbca74232,
-    Waterplant0 = 0xf1c6a230,
-    Waterplant1 = 0xf1c6a231,
-    Waterplant2 = 0xf1c6a232,
-    Waterlily0 = 0xf1d6a230,
-    Waterlily1 = 0xf1d6a231,
-    Deadsettler = 0xdacb0a13,
-}
-
-impl DoodadType {
-    pub fn has_lifetime(self) -> bool {
-        use DoodadType::*;
-        matches!(
-            self,
-            EmptySign
-                | WaterSign
-                | CoalSignS
-                | CoalSignM
-                | CoalSignL
-                | IronSignS
-                | IronSignM
-                | IronSignL
-                | GoldSignS
-                | GoldSignM
-                | GoldSignL
-                | GranitSignS
-                | GranitSignM
-                | GranitSignL
-        )
-    }
-}
-
-#[binrw]
-#[brw(repr = u32)]
-#[repr(u32)]
-#[derive(Debug)]
 pub enum Tribe {
     Romans = 0,
     Africans = 1,
     Chinese = 2,
-}
-
-#[binrw]
-#[brw(repr = u32)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum AnimalType {
-    Deer = 0x4a9bef83,
-    Rabbit = 0x41797b76,
-    Elk = 0x706e7c94,
 }
 
 #[binrw]
@@ -645,7 +311,7 @@ where
 {
     version: Version<MAX_VER, CRC, LEN>,
     pub first: T,
-    pub secound: D,
+    pub second: D,
 }
 
 #[binrw]
