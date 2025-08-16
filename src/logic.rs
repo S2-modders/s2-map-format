@@ -55,7 +55,7 @@ pub struct GameFileLogic {
 
 #[binrw]
 #[derive(Debug)]
-struct Random {
+pub struct Random {
     version: Version!(0, "Logic Random"),
     init: Bool,
     state: u64,
@@ -63,7 +63,7 @@ struct Random {
 
 #[binrw]
 #[derive(Debug)]
-struct Stats {
+pub struct Stats {
     version: Version!(0, "LogicStatistics"),
     idk: u32,
     stats: Array<(Uuid, u32, f32, u32)>,
@@ -85,7 +85,7 @@ struct PlayerStats {
 
 #[binrw]
 #[derive(Debug)]
-struct GameScript {
+pub struct GameScript {
     version: Version!(0, "GameScript"),
     init: Bool,
     map_name: Str,

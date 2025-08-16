@@ -119,12 +119,16 @@ struct TerritoryMap {
 #[binrw]
 #[derive(Debug)]
 struct ExplorationMap {
-    version: Version!(1, "Map Exploration"), //TODO: why 1?
+    version: Version!(1, "Map Exploration"),
     init: Bool,
     width: u32,
     height: u32,
     #[br(count = width * height)]
-    exploration: [Vec<Bool>; PlayerId::COUNT],
+    #[brw(if(version.version == 0))]
+    exploration_old: [Vec<Bool>; PlayerId::COUNT],
+    #[br(count = width * height)]
+    #[brw(if(version.version > 0))]
+    exploration: [Vec<u32>; PlayerId::COUNT],
 }
 
 #[binrw]

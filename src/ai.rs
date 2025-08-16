@@ -1,18 +1,19 @@
 use crate::Version;
 use crate::buildings::Building;
-use crate::{helper_structs::*, player::OptionalPlayer};
+use crate::helper_structs::*;
+use crate::player::Player;
 use binrw::binrw;
+use binrw::helpers::args_iter;
 use bounded_integer::BoundedU32;
-use strum::*;
 
 #[binrw]
 #[derive(Debug)]
-#[brw(import(players: &[OptionalPlayer]))]
+#[brw(import(players: &[Optional<Player>]))]
 pub struct Ai {
     version: Version!(2, "AI System"),
     init: Bool,
-    #[brw(args(version.version, players))]
-    ai_players: [AiPlayer; PlayerId::COUNT],
+    #[br(parse_with = args_iter(players.iter().map(|o|o.as_ref()).zip(std::iter::repeat(version.version.get()))))]
+    ai_players: Vec<AiPlayer>,
     tick: u32,
     resource_map: ResourceMap,
     small_resource_map: SmallResourceMap,
@@ -21,7 +22,7 @@ pub struct Ai {
 
 #[binrw]
 #[derive(Debug)]
-#[brw(import(aiVersion: BoundedU32<0, 2>, players: &[OptionalPlayer]))]
+#[brw(import(player: Option<&Player>, aiVersion: u32))]
 struct AiPlayer {
     version: Version!(6, "AI Player"),
     init: Bool,
@@ -31,10 +32,10 @@ struct AiPlayer {
     #[brw(if(version.version < 6 || init.bool))]
     #[brw(args(version.version))]
     initialized_ai_player: Option<InitAiPlayer>,
-    #[brw(if(aiVersion > 1 && players[0].player.as_ref().is_some_and(|p|p.init.bool)))] //TODO
-    #[br(try)]
+    #[brw(if(aiVersion > 1 && player.is_some_and(|p|p.init.bool)))]
     military_map: Option<MilitaryMap>,
 }
+
 #[binrw]
 #[derive(Debug)]
 #[brw(import(version: BoundedU32<0, 6>))]

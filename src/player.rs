@@ -9,20 +9,13 @@ use strum::*;
 pub struct Players {
     version: Version!(0, "PlayerSystem"),
     init: Bool,
-    pub players: [OptionalPlayer; PlayerId::COUNT],
-}
-
-#[binrw]
-#[derive(Debug)]
-pub struct OptionalPlayer {
-    id: Optional<PlayerId>,
-    #[brw(if(id.is_some()))]
-    pub player: Option<Player>,
+    pub players: [Optional<Player>; PlayerId::COUNT],
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct Player {
+    id2: PlayerId,
     version: Version!(5, "PlayerObject"),
     pub init: Bool,
     name: Str,

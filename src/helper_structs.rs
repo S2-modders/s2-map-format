@@ -108,6 +108,30 @@ where
     Some(T),
 }
 
+impl<T> Optional<T>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug,
+{
+    pub const fn as_ref(&self) -> Option<&T> {
+        match *self {
+            Optional::Some(ref x) => Some(x),
+            Optional::None => None,
+        }
+    }
+}
+
+impl<T> From<Optional<T>> for Option<T>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug,
+{
+    fn from(val: Optional<T>) -> Self {
+        match val {
+            Optional::None => None,
+            Optional::Some(t) => Some(t),
+        }
+    }
+}
+
 #[binrw]
 #[brw(repr = u32)]
 #[repr(u32)]
