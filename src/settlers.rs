@@ -1,4 +1,5 @@
 use crate::Version;
+use crate::VersionI;
 
 use crate::buildings::Building;
 use crate::helper_structs::*;
@@ -9,9 +10,7 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Settlers {
-    version: Version!(0, "SettlersSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "SettlersSystem"),
     workers: Array<(PlayerId, Worker)>,
     constructor: Array<(PlayerId, Constructor)>,
     carrier: Array<(PlayerId, Carrier)>,

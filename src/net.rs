@@ -1,8 +1,12 @@
 use crate::Version;
+use crate::VersionI;
+use crate::Versioned;
+use crate::VersionedI;
+use crate::buildings::Order;
 
 use crate::helper_structs::*;
 use crate::{
-    buildings::{Building, OrderContainer, SettlersContainer},
+    buildings::{Building, SettlersContainer},
     settlers::Carrier,
     transport::Package,
 };
@@ -12,9 +16,7 @@ use strum::EnumCount;
 #[binrw]
 #[derive(Debug)]
 pub struct NetSys {
-    version: Version!(1, "Net System"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "Net System"),
     flags: Array<(PlayerId, Flag)>,
     streets: Array<Street>,
     idk: [[Array<Idk>; 3]; PlayerId::COUNT],
@@ -27,11 +29,11 @@ pub struct Flag {
     building_ref: Ref<Building>,
     id: Uuid,
     pos: PatternCursor,
-    links: Array<FlagLink>,
+    links: Array<Versioned!(0, "Net FlagLink", Ref<Flag>, Ref<Street>)>,
     idk: [Uuid; 3],
-    packages: PackageContainer,
-    specialist: Specialist,
-    orders: OrderContainer,
+    packages: VersionedI!(0, "Package Container", Array<Ref<Package>>),
+    specialist: Versioned!(0, "Net Specialist", SettlersContainer),
+    orders: Versioned!(0, "Order Container", Array<Ref<Order>>),
     idk2: u32,
 }
 
@@ -39,30 +41,6 @@ impl Ided for Flag {
     fn id(&self) -> Uuid {
         self.id
     }
-}
-
-#[binrw]
-#[derive(Debug)]
-struct FlagLink {
-    version: Version!(0, "Net FlagLink"),
-    flag_ref: Ref<Flag>,
-    street_ref: Ref<Street>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct PackageContainer {
-    version: Version!(0, "Package Container"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    packages: Array<Ref<Package>>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct Specialist {
-    version: Version!(0, "Net Specialist"),
-    settlers: SettlersContainer,
 }
 
 #[binrw]
@@ -78,8 +56,8 @@ pub struct Street {
     end: Ref<Flag>,
     carrier0: Ref<Carrier>,
     carrier1: Ref<Carrier>,
-    map_updater: MapUpdater,
-    orders: OrderContainer,
+    map_updater: Version!(0, "Net Street Map Updater"),
+    orders: Versioned!(0, "Order Container", Array<Ref<Order>>),
     transported_good_count: u32,
     ticks: CapedU32<6000>,
     stone_score: f32,
@@ -94,12 +72,6 @@ impl Ided for Street {
     fn id(&self) -> Uuid {
         self.id
     }
-}
-
-#[binrw]
-#[derive(Debug)]
-struct MapUpdater {
-    version: Version!(0, "Net Street Map Updater"),
 }
 
 #[binrw]

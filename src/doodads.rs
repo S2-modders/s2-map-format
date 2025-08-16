@@ -1,13 +1,12 @@
 use crate::Version;
+use crate::VersionI;
 use crate::helper_structs::*;
 use binrw::binrw;
 
 #[binrw]
 #[derive(Debug)]
 pub struct Doodads {
-    version: Version!(0, "DoodadsSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "DoodadsSystem"),
     map1: Array<Doodad>,
     map2: Array<Doodad>,
     map3: Array<Doodad>,

@@ -1,17 +1,11 @@
 use crate::Version;
+use crate::VersionI;
+use crate::Versioned;
+use crate::VersionedI;
 
 use crate::helper_structs::*;
 use binrw::binrw;
 use strum::*;
-
-#[binrw]
-#[derive(Debug)]
-pub struct Players {
-    version: Version!(0, "PlayerSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    pub players: [Optional<Player>; PlayerId::COUNT],
-}
 
 #[binrw]
 #[derive(Debug)]
@@ -26,13 +20,14 @@ pub struct Player {
     idk2: u32,
     tribe: u32,
     locksmith: LockSmith,
-    good_priority: GoodPriorities,
-    good_arrangement: GoodArrangement,
+    good_priority: VersionedI!(0, "Good Priorities", Array<GoodPriority>),
+    good_arrangement: VersionedI!(0, "Good Arrangement", Array<GoodArrangementGroup>),
     military: PlayerMilitary,
-    messages: Messages,
+    messages: Versioned!(0, "Messages", Array<Message>),
     stock: Stock,
     counter: u32,
-    ship_names: ShipNames,
+    /// contains the current number the ship_names are on (the numbers are translated to names)
+    ship_names: Versioned!(0, "Player ShipNames", CapedU32<19>),
     idk4: u32,
     seen: [(u32, u32); PlayerId::COUNT], //Seen by and Seen
     stock2: Stock,
@@ -48,15 +43,6 @@ struct LockSmith {
 
 #[binrw]
 #[derive(Debug)]
-struct GoodPriorities {
-    version: Version!(0, "Good Priorities"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    settings: Array<GoodPriority>,
-}
-
-#[binrw]
-#[derive(Debug)]
 struct GoodPriority {
     version: Version!(0, "Good Priority"),
     idk: u32,
@@ -65,28 +51,10 @@ struct GoodPriority {
 
 #[binrw]
 #[derive(Debug)]
-struct GoodArrangement {
-    version: Version!(0, "Good Arrangement"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    arrangementgroups: Array<GoodArrangementGroup>,
-}
-
-#[binrw]
-#[derive(Debug)]
 struct GoodArrangementGroup {
-    version: Version!(0, "Player GoodArrangementGroup"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    base_arrangement: ArrangementBase,
+    version: VersionI!(0, "Player GoodArrangementGroup"),
+    base_arrangement: Versioned!(0, "Player ArrangementBase", Array<ArrangementObject>),
     good: Good,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct ArrangementBase {
-    version: Version!(0, "Player ArrangementBase"),
-    arrangements: Array<ArrangementObject>,
 }
 
 #[binrw]
@@ -113,13 +81,6 @@ struct PlayerMilitary {
 
 #[binrw]
 #[derive(Debug)]
-struct Messages {
-    version: Version!(0, "Messages"),
-    messages: Array<Message>,
-}
-
-#[binrw]
-#[derive(Debug)]
 struct Message {
     version: Version!(2, "Message"),
     idk: f32,
@@ -128,7 +89,7 @@ struct Message {
     desc: Str,
     msg_type: u32,
     idk2: u32,
-    id: MsgId,
+    id: MsgId, //TODO
     more_info: Str,
 }
 
@@ -142,16 +103,7 @@ struct MsgId {
 #[binrw]
 #[derive(Debug)]
 pub struct Stock {
-    version: Version!(0, "Stock"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Stock"),
     idk: u32,
     map: Array<(Good, u32)>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct ShipNames {
-    version: Version!(0, "Player ShipNames"),
-    ships: CapedU32<19>,
 }

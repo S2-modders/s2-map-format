@@ -1,4 +1,7 @@
 use crate::Version;
+use crate::VersionI;
+use crate::Versioned;
+use crate::VersionedI;
 use crate::buildings::Building;
 use crate::helper_structs::*;
 use crate::player::Player;
@@ -37,10 +40,15 @@ struct AiPlayer {
 struct InitAiPlayer {
     headquarters: PatternCursor,
     construction: Construction,
-    needs_arrangement: NeedsArrangement,
+    needs_arrangement: VersionedI!(0, "AI NeedsArrangement", ExpansionTarget),
     needs_construction: NeedsConstruction,
-    resource_map_adds: ResourceMapAdds,
-    small_resource_map_adds: SmallResourceMapAdds,
+    resource_map_adds: VersionedI!(0, "Ai ResourceMapAdds", Array<ResourceMapAddsElement>),
+    small_resource_map_adds: VersionedI!(
+        0,
+        "Ai LowResResourceMapAdds",
+        Array<SmallResourceMapAddsElement>
+    ),
+
     buildings: Array<AiBuilding>,
     general_needs: Array<Need>,
     food_needs: Array<Need>,
@@ -53,37 +61,10 @@ struct InitAiPlayer {
     destruction: Destruction,
     need_creation: NeedCreation,
     lock_smith: LockSmith,
-    food_arrangement: FoodArrangement,
-    goods_arrangement: GoodsArrangement,
-    production_control: ProductionControl,
-    conquered_continents: ConqueredContinents,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct ConqueredContinents {
-    version: Version!(0, "Ai ConqueredContinents"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    continent_ids: Array<u32>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct ProductionControl {
-    version: Version!(0, "AI ProductionControl"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    current: Good,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct GoodsArrangement {
-    version: Version!(0, "AI GoodsArrangement"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    stage: GoodsArrangementStage,
+    food_arrangement: VersionI!(0, "AI FoodArrangement"),
+    goods_arrangement: VersionedI!(0, "AI GoodsArrangement", GoodsArrangementStage),
+    production_control: VersionedI!(0, "AI ProductionControl", Good),
+    conquered_continents: VersionedI!(0, "Ai ConqueredContinents", Array<u32>),
 }
 
 #[binrw]
@@ -104,18 +85,8 @@ enum GoodsArrangementStage {
 
 #[binrw]
 #[derive(Debug)]
-struct FoodArrangement {
-    version: Version!(0, "AI FoodArrangement"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-}
-
-#[binrw]
-#[derive(Debug)]
 struct LockSmith {
-    version: Version!(1, "AI LockSmith"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "AI LockSmith"),
     tool_need_ref: Ref<Need>,
     last_tool_produced: Option<Good>,
 }
@@ -123,9 +94,7 @@ struct LockSmith {
 #[binrw]
 #[derive(Debug)]
 struct NeedCreation {
-    version: Version!(0, "AI NeedCreation"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "AI NeedCreation"),
     state: NeedCreationState,
     /// the time the when the next check if enough stone and plank is present is executed (in
     /// 10mins)
@@ -147,9 +116,7 @@ enum NeedCreationState {
 #[binrw]
 #[derive(Debug)]
 struct Destruction {
-    version: Version!(2, "Ai DestructionSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(2, "Ai DestructionSystem"),
     curr_flag_idx: u32,
     some_ref: u64,
 }
@@ -157,10 +124,8 @@ struct Destruction {
 #[binrw]
 #[derive(Debug)]
 struct AiResources {
-    version: Version!(0, "Ai ResourceSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    needs: NeedRefs,
+    version: VersionI!(0, "Ai ResourceSystem"),
+    needs: Versioned!(0, "Ai ReferncesNeed", Array<Ref<Need>>),
     expansion_target: ExpansionTarget,
     need: Good,
 }
@@ -168,52 +133,30 @@ struct AiResources {
 #[binrw]
 #[derive(Debug)]
 struct AiMilitary {
-    version: Version!(8, "Ai MilitarySystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(8, "Ai MilitarySystem"),
     military_building_creation: MilitaryBuildingCreation,
     military_settings: MilitarySettings,
     attack_system: AttackSystem,
-    soldier_creation: SoldierCreation,
+    soldier_creation: VersionI!(0, "AI SoldierCreation"),
     catapult_construction: CatapultConstruction,
-    castle_settings: Option<CastleSettings>,
-    weapon_production: Option<WeaponProduction>,
-    coin_production: Option<CoinProduction>,
-    coin_arrangement: Option<CoinArrangement>,
-    military_upgrade: Option<MilitaryUpgrade>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct SoldierCreation {
-    version: Version!(0, "AI SoldierCreation"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    castle_settings: VersionI!(0, "AI CastleSettings"),
+    weapon_production: WeaponProduction,
+    coin_production: CoinProduction,
+    coin_arrangement: VersionI!(0, "AI CoinArrangement"),
+    military_upgrade: MilitaryUpgrade,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct MilitaryUpgrade {
-    version: Version!(1, "AI MilitaryUpgrade"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "AI MilitaryUpgrade"),
     curr_military_building_idx: u32,
 }
 
 #[binrw]
 #[derive(Debug)]
-struct CoinArrangement {
-    version: Version!(0, "AI CoinArrangement"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-}
-
-#[binrw]
-#[derive(Debug)]
 struct CoinProduction {
-    version: Version!(0, "AI CoinProduction"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "AI CoinProduction"),
     idk: u32,
     idk2: f32, //same as in WeaponProduction
 }
@@ -221,27 +164,15 @@ struct CoinProduction {
 #[binrw]
 #[derive(Debug)]
 struct WeaponProduction {
-    version: Version!(0, "AI WeaponProduction"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "AI WeaponProduction"),
     idk: u32,
     idk2: f32,
 }
 
 #[binrw]
 #[derive(Debug)]
-struct CastleSettings {
-    version: Version!(0, "AI CastleSettings"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-}
-
-#[binrw]
-#[derive(Debug)]
 struct CatapultConstruction {
-    version: Version!(0, "AI CatapultConstruction"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "AI CatapultConstruction"),
     curr_pos: MapIdxPos,
     best_score: f32,
     best_pos: MapIdxPos,
@@ -252,21 +183,10 @@ struct CatapultConstruction {
 #[binrw]
 #[derive(Debug)]
 struct AttackSystem {
-    version: Version!(1, "Ai AttackSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    target_selection: TargetSelection,
+    version: VersionI!(1, "Ai AttackSystem"),
+    target_selection: VersionedI!(0, "Ai AttackTargetSelection", AttackTarget),
     attack_execution: AttackExecution,
     allowed_attack_count: u32,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct TargetSelection {
-    version: Version!(0, "Ai AttackTargetSelection"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    target: AttackTarget,
 }
 
 #[binrw]
@@ -282,9 +202,7 @@ struct AttackTarget {
 #[binrw]
 #[derive(Debug)]
 struct AttackExecution {
-    version: Version!(1, "Ai AttackExecution"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "Ai AttackExecution"),
     pos: OptionalPatternCursor,
     expansion_target: ExpansionTarget,
 }
@@ -292,18 +210,14 @@ struct AttackExecution {
 #[binrw]
 #[derive(Debug)]
 struct MilitarySettings {
-    version: Version!(0, "AI MilitarySettings"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "AI MilitarySettings"),
     tick: CapedU32<50>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct MilitaryBuildingCreation {
-    version: Version!(0, "Ai MilitaryBuildingCreation"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Ai MilitaryBuildingCreation"),
     order: ConstructionOrder,
     target: ExpansionTarget,
     tick: CapedU32<3>,
@@ -313,13 +227,11 @@ struct MilitaryBuildingCreation {
 #[binrw]
 #[derive(Debug)]
 struct Expansion {
-    version: Version!(1, "Ai ExpansionSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "Ai ExpansionSystem"),
     target: ExpansionTarget,
     target2: ExpansionTarget,
     expansion_request_type: ExpansionRequestType,
-    expedition: Option<Expedition>,
+    expedition: VersionI!(0, "AI Expedition"),
 }
 
 #[binrw]
@@ -335,20 +247,10 @@ enum ExpansionRequestType {
 
 #[binrw]
 #[derive(Debug)]
-struct Expedition {
-    version: Version!(0, "AI Expedition"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-}
-
-#[binrw]
-#[derive(Debug)]
 struct Cells {
-    version: Version!(3, "Ai CellSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    cell_depot_creation: CellDepotCreation,
-    cell_expansion: CellExpansion,
+    version: VersionI!(3, "Ai CellSystem"),
+    cell_depot_creation: VersionedI!(0, "Ai CellDepotCreation", ConstructionOrder),
+    cell_expansion: VersionedI!(0, "Ai CellExpansion", ExpansionTarget),
     cells: Array<Cell>,
     cell_validator: Option<CellValidator>,
     cell_clearing: Option<CellClearing>,
@@ -357,28 +259,8 @@ struct Cells {
 
 #[binrw]
 #[derive(Debug)]
-struct CellDepotCreation {
-    version: Version!(0, "Ai CellDepotCreation"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    order: ConstructionOrder,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct CellExpansion {
-    version: Version!(0, "Ai CellExpansion"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    target: ExpansionTarget,
-}
-
-#[binrw]
-#[derive(Debug)]
 struct CellValidator {
-    version: Version!(0, "AI CellValidator"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "AI CellValidator"),
     start: MapIdxPos,
     end: MapIdxPos,
 }
@@ -386,9 +268,7 @@ struct CellValidator {
 #[binrw]
 #[derive(Debug)]
 struct CellClearing {
-    version: Version!(0, "AI CellClearing"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "AI CellClearing"),
     start: MapIdxPos,
     end: MapIdxPos,
     order: ConstructionOrder,
@@ -397,9 +277,7 @@ struct CellClearing {
 #[binrw]
 #[derive(Debug)]
 struct HarborCreation {
-    version: Version!(1, "Ai HarborCreation"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "Ai HarborCreation"),
     order: ConstructionOrder,
     active: Bool,
 }
@@ -407,24 +285,22 @@ struct HarborCreation {
 #[binrw]
 #[derive(Debug)]
 struct Cell {
-    version: Version!(5, "Ai Cell"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(5, "Ai Cell"),
     id: Uuid,
     cell_idx_pos: MapIdxPos,
     pos: PatternCursor,
-    depots: AiBuildingRefs,
-    civil_buildings: AiBuildingRefs,
-    military_buildings: AiBuildingRefs,
-    productions: ProductionRefs,
-    needs: NeedRefs,
+    depots: Versioned!(0, "Ai ReferncesBuilding", Array<Ref<AiBuilding>>),
+    civil_buildings: Versioned!(0, "Ai ReferncesBuilding", Array<Ref<AiBuilding>>),
+    military_buildings: Versioned!(0, "Ai ReferncesBuilding", Array<Ref<AiBuilding>>),
+    productions: Versioned!(0, "Ai ReferncesProduction", Array<Ref<Production>>),
+    needs: Versioned!(0, "Ai ReferncesNeed", Array<Ref<Need>>),
     expansion_maybe: CellConstruction,
     depot_constructon: CellConstruction,
-    cell_full: CellFull,
+    cell_full: VersionedI!(0, "AI CellFull", Array<CellFullElement>),
     destruction_site: CellConstruction,
     destruction_size: u32,
     aibuilding_ref: Ref<AiBuilding>,
-    harbors: AiBuildingRefs,
+    harbors: Versioned!(0, "Ai ReferncesBuilding", Array<Ref<AiBuilding>>),
     continent_id: u32,
     idk: CellConstruction,
     aibuilding_ref2: Ref<AiBuilding>,
@@ -434,22 +310,6 @@ impl Ided for Cell {
     fn id(&self) -> Uuid {
         self.id
     }
-}
-
-#[binrw]
-#[derive(Debug)]
-struct AiBuildingRefs {
-    version: Version!(0, "Ai ReferncesBuilding"),
-    aibuildings: Array<Ref<AiBuilding>>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct CellFull {
-    version: Version!(0, "AI CellFull"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    elements: Array<CellFullElement>,
 }
 
 #[binrw]
@@ -473,9 +333,7 @@ struct CellConstruction {
 #[binrw]
 #[derive(Debug)]
 struct TerritoryMap {
-    version: Version!(0, "Ai TerritoryMap"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Ai TerritoryMap"),
     width: u32,
     height: u32,
     #[br(count = width * height)]
@@ -496,9 +354,7 @@ struct TerritoryMapElement {
 #[binrw]
 #[derive(Debug)]
 struct Production {
-    version: Version!(0, "Ai Production"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Ai Production"),
     id: Uuid,
     product: Good,
     cell_ref: Ref<Cell>,
@@ -515,9 +371,7 @@ impl Ided for Production {
 #[binrw]
 #[derive(Debug)]
 struct Need {
-    version: Version!(0, "Ai Need"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Ai Need"),
     id: Uuid,
     need_type: Good,
     cell_ref: Ref<Cell>,
@@ -538,14 +392,12 @@ impl Ided for Need {
 #[binrw]
 #[derive(Debug)]
 struct AiBuilding {
-    version: Version!(1, "Ai Building"), //TODO: why?
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "Ai Building"), //TODO: why?
     id: Uuid,
     building_ref: Ref<Building>,
     cell_ref: Ref<Cell>,
-    need_refs: NeedRefs,
-    production_refs: ProductionRefs,
+    need_refs: Versioned!(0, "Ai ReferncesNeed", Array<Ref<Need>>),
+    production_refs: Versioned!(0, "Ai ReferncesProduction", Array<Ref<Production>>),
 }
 
 impl Ided for AiBuilding {
@@ -556,41 +408,9 @@ impl Ided for AiBuilding {
 
 #[binrw]
 #[derive(Debug)]
-struct NeedRefs {
-    version: Version!(0, "Ai ReferncesNeed"),
-    needs: Array<Ref<Need>>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct ProductionRefs {
-    version: Version!(0, "Ai ReferncesProduction"),
-    productions: Array<Ref<Production>>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct SmallResourceMapAdds {
-    version: Version!(0, "Ai LowResResourceMapAdds"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    needs: Array<SmallResourceMapAddsElement>,
-}
-
-#[binrw]
-#[derive(Debug)]
 struct SmallResourceMapAddsElement {
     version: Version!(0, "Ai LowResResourceMapAddsElement"),
-    idk: i32,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct ResourceMapAdds {
-    version: Version!(0, "Ai ResourceMapAdds"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    needs: Array<ResourceMapAddsElement>,
+    idk: i32, //TODO
 }
 
 #[binrw]
@@ -604,20 +424,9 @@ struct ResourceMapAddsElement {
 #[binrw]
 #[derive(Debug)]
 struct NeedsConstruction {
-    version: Version!(0, "AI NeedsConstruction"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "AI NeedsConstruction"),
     order: ConstructionOrder,
     need: Ref<Need>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct NeedsArrangement {
-    version: Version!(0, "AI NeedsArrangement"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    target: ExpansionTarget,
 }
 
 #[binrw]
@@ -642,9 +451,7 @@ enum ExpansionTargetType {
 #[binrw]
 #[derive(Debug)]
 struct Construction {
-    version: Version!(3, "Ai ConstructionSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(3, "Ai ConstructionSystem"),
     order: ConstructionOrder,
     order_type: ConstructionOrderType,
     building_construction: BuildingConstruction,
@@ -675,9 +482,7 @@ enum ConstructionOrderType {
 #[binrw]
 #[derive(Debug)]
 struct StreetConstruction {
-    version: Version!(2, "AI StreetConstruction"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(2, "AI StreetConstruction"),
     curr_flag_idx: i32,
     target_flag: u64, //Flag ref
     idk: u32,
@@ -694,9 +499,7 @@ struct StreetConstruction {
 #[binrw]
 #[derive(Debug)]
 struct ForesterConstruction {
-    version: Version!(1, "AI ForesterConstruction"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "AI ForesterConstruction"),
     order: ConstructionOrder,
     curr_cell_idx: u32,
 }
@@ -704,18 +507,14 @@ struct ForesterConstruction {
 #[binrw]
 #[derive(Debug)]
 struct StreetOptimizer {
-    version: Version!(1, "AI StreetOptimizer"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "AI StreetOptimizer"),
     idx: u32,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct StreetRouteOptimizer {
-    version: Version!(1, "AI StreetRouteOptimizer"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "AI StreetRouteOptimizer"),
     aibuilding_ref: u64,
     poses: Array<PatternCursor>,
     idk: i32,
@@ -727,9 +526,7 @@ struct StreetRouteOptimizer {
 #[binrw]
 #[derive(Debug)]
 struct ShipConstruction {
-    version: Version!(0, "AI ShipConstruction"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "AI ShipConstruction"),
     order: ConstructionOrder,
     aibuilding_ref: Ref<AiBuilding>, //TODO
 }
@@ -737,9 +534,7 @@ struct ShipConstruction {
 #[binrw]
 #[derive(Debug)]
 struct HunterConstruction {
-    version: Version!(0, "AI ConstructionHunter"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "AI ConstructionHunter"),
     order: ConstructionOrder,
     cell_idk: u32, //TODO
 }
@@ -813,9 +608,7 @@ struct CellPositionIterator {
 #[binrw]
 #[derive(Debug)]
 struct MilitaryMap {
-    version: Version!(0, "Ai Military Map"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Ai Military Map"),
     width: u32,
     height: u32,
     #[br(count = width * height)]
@@ -826,23 +619,14 @@ struct MilitaryMap {
 #[binrw]
 #[derive(Debug)]
 struct ResourceMap {
-    version: Version!(1, "Ai ResourceMap"), //TODO why not 0?
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "Ai ResourceMap"), //TODO why not 0?
     width: u32,
     height: u32,
     #[br(count = width * height)]
-    element_vecs: Vec<ResourceMapElements>,
+    element_vecs: Vec<Versioned!(0, "AI ResourceMapElements", Array<ResourceMapElement>)>,
     tick_pos: MapIdxPos,
     tick_pos2: MapIdxPos,
     len: u32,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct ResourceMapElements {
-    version: Version!(0, "AI ResourceMapElements"),
-    elements: Array<ResourceMapElement>,
 }
 
 #[binrw]
@@ -858,13 +642,11 @@ struct ResourceMapElement {
 #[binrw]
 #[derive(Debug)]
 struct SmallResourceMap {
-    version: Version!(0, "Ai LowResResourceMap"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Ai LowResResourceMap"),
     width: u32,
     height: u32,
     #[br(count = width * height)]
-    element_vecs: Vec<ResourceMapElements>,
+    element_vecs: Vec<Versioned!(0, "AI ResourceMapElements", Array<ResourceMapElement>)>,
     curr_tick_pos: MapIdxPos,
 }
 

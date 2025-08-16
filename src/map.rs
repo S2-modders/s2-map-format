@@ -1,4 +1,6 @@
 use crate::Version;
+use crate::VersionI;
+use crate::VersionedI;
 use crate::helper_structs::*;
 use bilge::prelude::*;
 use bilge::{DebugBits, bitsize};
@@ -8,14 +10,12 @@ use strum::*;
 #[binrw]
 #[derive(Debug)]
 pub struct Map {
-    version: Version!(0, "MapSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "MapSystem"),
     width: u32,
     height: u32,
     elevation_map: ElevationMap,
-    pattern_map: PatternMap,
-    gird_state_map: GridStatesMap,
+    pattern_map: VersionedI!(0, "PatternMap", Array<PatternType>),
+    gird_state_map: VersionedI!(0, "GridStatesMap", Array<GridStates>),
     resource_map: ResourceMap,
     territory_map: TerritoryMap,
     exploration_map: ExplorationMap,
@@ -25,32 +25,12 @@ pub struct Map {
 #[binrw]
 #[derive(Debug)]
 struct ElevationMap {
-    version: Version!(1, "ElevationMap"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "ElevationMap"),
     min_elevation: i32,
     width: u32,
     height: u32,
     #[br(count = width * height)]
     elevations: Vec<i32>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct PatternMap {
-    version: Version!(0, "PatternMap"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    patterns: Array<PatternType>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct GridStatesMap {
-    version: Version!(0, "GridStatesMap"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    gridstates: Array<GridStates>,
 }
 
 #[bitsize(32)]
@@ -94,9 +74,7 @@ struct GridStates {
 #[binrw]
 #[derive(Debug)]
 struct ResourceMap {
-    version: Version!(0, "Map Resources"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Map Resources"),
     width: u32,
     height: u32,
     #[br(count = width*height)]
@@ -106,9 +84,7 @@ struct ResourceMap {
 #[binrw]
 #[derive(Debug)]
 struct TerritoryMap {
-    version: Version!(0, "Map Territory"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Map Territory"),
     width: u32,
     height: u32,
     #[br(count = width * height)]
@@ -118,9 +94,7 @@ struct TerritoryMap {
 #[binrw]
 #[derive(Debug)]
 struct ExplorationMap {
-    version: Version!(1, "Map Exploration"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "Map Exploration"),
     width: u32,
     height: u32,
     #[br(count = width * height)]
@@ -130,9 +104,7 @@ struct ExplorationMap {
 #[binrw]
 #[derive(Debug)]
 struct ContinentMap {
-    version: Version!(1, "Map Continents"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "Map Continents"),
     width: u32,
     height: u32,
     #[br(count = width * height)]

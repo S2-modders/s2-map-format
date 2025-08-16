@@ -1,4 +1,6 @@
 use crate::Version;
+use crate::VersionI;
+use crate::VersionedI;
 
 use crate::{buildings::Building, helper_structs::*, net::Flag, settlers::Settler};
 use binrw::binrw;
@@ -6,20 +8,16 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Transport {
-    version: Version!(0, "Transport System"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Transport System"),
     packages: Packages,
-    package_needs: PackageNeeds,
-    building_needs: BuildingNeeds,
+    package_needs: VersionedI!(0, "Transport PackageNeedSystem", Array<PackageNeedTarget>),
+    building_needs: VersionedI!(0, "Transport BuildingNeedSystem", Array<BuildingNeedGood>),
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Packages {
-    version: Version!(0, "Package System"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Package System"),
     package: Array<(PlayerId, Package)>,
 }
 
@@ -51,28 +49,10 @@ impl Ided for Package {
 
 #[binrw]
 #[derive(Debug)]
-struct PackageNeeds {
-    version: Version!(0, "Transport PackageNeedSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    package: Array<PackageNeedTarget>,
-}
-
-#[binrw]
-#[derive(Debug)]
 struct PackageNeedTarget {
     version: Version!(0, "Transport PackageNeedTarget"),
     package_ref: Ref<Package>,
     building_ref: Ref<Building>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct BuildingNeeds {
-    version: Version!(0, "Transport BuildingNeedSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    building_need_goods: Array<BuildingNeedGood>,
 }
 
 #[binrw]

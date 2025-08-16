@@ -1,3 +1,4 @@
+use crate::VersionI;
 use crate::buildings::Building;
 use crate::movement::AnimalMovement;
 use crate::{Version, helper_structs::*};
@@ -6,9 +7,7 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Resources {
-    version: Version!(4, "resources"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(4, "resources"),
     deposits: Array<Deposit>,
     animals: Array<Animal>,
     respawn: AnimalRespawn,
@@ -19,9 +18,7 @@ pub struct Resources {
 #[binrw]
 #[derive(Debug)]
 struct AnimalRespawn {
-    version: Version!(0, "Resources AnimalRespawn"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Resources AnimalRespawn"),
     tick: CapedU32<999>,
     tick_increment: u32,
     pos: MapIdxPos,

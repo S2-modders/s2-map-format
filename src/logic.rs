@@ -1,3 +1,6 @@
+use crate::VersionI;
+use crate::VersionedI;
+use crate::player::Player;
 use std::time::Duration;
 
 use crate::Version;
@@ -7,9 +10,8 @@ use crate::doodads::Doodads;
 use crate::helper_structs::*;
 use crate::map::Map;
 use crate::military::Military;
-use crate::navy::Navy;
+use crate::navy::Ship;
 use crate::net::NetSys;
-use crate::player::Players;
 use crate::resources::Resources;
 use crate::settlers::Settlers;
 use crate::transport::Transport;
@@ -24,44 +26,27 @@ pub struct MapFile {
     pub map: Map,
     pub resources: Resources,
     pub doodads: Doodads,
-    pub ambients: Ambients,
+    pub ambients: VersionedI!(0, "Logic Ambients", Array<(AmbientType, PatternCursor)>),
     #[brw(if(mapinfo.file_type == FileType::SaveGame))]
     pub gamefilelogic: Option<GameFileLogic>,
-}
-#[binrw]
-#[derive(Debug)]
-pub struct Ambients {
-    version: Version!(0, "Logic Ambients"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    ambients: Array<(AmbientType, PatternCursor)>,
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct GameFileLogic {
     version: Version!(2, "Game File Logic"),
-    pub random: Random,
-    pub players: Players,
+    pub random: VersionedI!(0, "Logic Random", u64),
+    pub players: VersionedI!(0, "PlayerSystem", [Optional<Player>; PlayerId::COUNT]),
     pub villages: Villages,
     pub settlers: Settlers,
     pub transport: Transport,
     pub military: Military,
-    pub navy: Navy,
+    pub navy: VersionedI!(2, "Navy System", Array<(PlayerId, Ship)>),
     pub netsys: NetSys,
-    #[brw(args(&players.players))]
+    #[brw(args(&players.data))]
     pub ai: Ai,
     pub stats: Stats,
     pub game_script: GameScript,
-}
-
-#[binrw]
-#[derive(Debug)]
-pub struct Random {
-    version: Version!(0, "Logic Random"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    state: u64,
 }
 
 #[binrw]
@@ -87,9 +72,7 @@ struct PlayerStats {
 #[binrw]
 #[derive(Debug)]
 pub struct GameScript {
-    version: Version!(0, "GameScript"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "GameScript"),
     map_name: Str,
     persistent: Array<(Str, u32)>,
 }
@@ -104,7 +87,7 @@ pub struct Logic {
     pub duration_between_ticks: Time,
     pub time_ticked: Time,
     pub time_passed: Time,
-    pub trigger_sys: TriggerSys,
+    pub trigger_sys: VersionedI!(0, "TriggerSystem", Array<Trigger>),
     pub tick: i32,
 }
 
@@ -171,19 +154,8 @@ pub enum MissionTarget {
 
 #[binrw]
 #[derive(Debug)]
-pub struct TriggerSys {
-    pub version: Version!(0, "TriggerSystem"),
-    #[brw(assert(init.bool))]
-    pub init: Bool,
-    pub triggers: Array<Trigger>,
-}
-
-#[binrw]
-#[derive(Debug)]
 pub struct Trigger {
-    version: Version!(1, "TriggerObject"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "TriggerObject"),
     id: Uuid,
     trigger_type: TriggerType,
     pos: PatternCursor,
@@ -219,8 +191,7 @@ impl Trigger {
         player_id: PlayerId,
     ) -> Trigger {
         Trigger {
-            version: Version {},
-            init: true.into(),
+            version: Default::default(),
             id: id_generator.next_id(),
             active: true.into(),
             time: Time {

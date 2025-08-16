@@ -5,6 +5,23 @@ use std::{fmt, marker::PhantomData, time::Duration};
 use strum::*;
 
 #[macro_export]
+macro_rules! Versioned {
+    ($MAX_VER:literal, $name:literal, $ty:ty, $ty2:ty) => {
+        Versioned2<$MAX_VER, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}, $ty, $ty2>
+    };
+    ($MAX_VER:literal, $name:literal, $ty:ty) => {
+        Versioned<$MAX_VER, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}, $ty>
+    };
+}
+
+#[macro_export]
+macro_rules! VersionedI {
+    ($MAX_VER:literal, $name:literal, $ty:ty) => {
+        VersionedI<$MAX_VER, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}, $ty>
+    };
+}
+
+#[macro_export]
 macro_rules! VersionI {
     ($MAX_VER:literal, $name:literal) => {
         VersionI<$MAX_VER, { const_crc32::crc32($name.as_bytes()) }, {$name.len() as u32}>
@@ -611,6 +628,35 @@ pub enum AnimalType {
 
 #[binrw]
 #[derive(derive_more::From, derive_more::Into, Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct Versioned2<const MAX_VER: u32, const CRC: u32, const LEN: u32, T, D> where
+        for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
+        for<'a> D: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
+    {
+    version: Version<MAX_VER, CRC, LEN>,
+    pub first: T,
+    pub secound: D,
+}
+
+#[binrw]
+#[derive(derive_more::From, derive_more::Into, Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct Versioned<const MAX_VER: u32, const CRC: u32, const LEN: u32, T> where
+        for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
+    {
+    version: Version<MAX_VER, CRC, LEN>,
+    pub data: T,
+}
+
+#[binrw]
+#[derive(derive_more::From, derive_more::Into, Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct VersionedI<const MAX_VER: u32, const CRC: u32, const LEN: u32, T> where
+        for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
+    {
+    version: VersionI<MAX_VER, CRC, LEN>,
+    pub data: T,
+}
+
+#[binrw]
+#[derive(derive_more::From, derive_more::Into, Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct VersionI<const MAX_VER: u32, const CRC: u32, const LEN: u32> {
     #[br(assert(version == MAX_VER))]
     #[bw(calc = MAX_VER)]
@@ -694,9 +740,9 @@ impl<const CAP: u32> CapedU32<CAP> {
 
 #[binrw]
 pub struct CoreUuid {
-    version: Version!(0, "Core UUID"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Core UUID"),
+    // #[brw(assert(init.bool))]
+    // init: Bool,
     id: u128,
 }
 

@@ -1,3 +1,4 @@
+use crate::VersionI;
 use crate::Version;
 
 use crate::{buildings::Building, helper_structs::*, settlers::Settler};
@@ -6,9 +7,9 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Military {
-    version: Version!(0, "MilitarySystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "MilitarySystem"),
+    // #[brw(assert(init.bool))]
+    // init: Bool,
     recruiting: Recruiting,
     distances: Distances,
     allocation: Allocation,
@@ -50,9 +51,9 @@ struct Fight {
 #[binrw]
 #[derive(Debug)]
 struct Fighters {
-    version: Version!(2, "Military Fighters"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(2, "Military Fighters"),
+    // #[brw(assert(init.bool))]
+    // init: Bool,
     fightconnections: FightConnections,
     idk: u32,
     idk2: Bool,
@@ -65,9 +66,9 @@ struct Fighters {
 #[binrw]
 #[derive(Debug)]
 struct FightConnections {
-    version: Version!(0, "Military FightConnections"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Military FightConnections"),
+    // #[brw(assert(init.bool))]
+    // init: Bool,
     settler_ref0: Ref<Settler>,
     settler_ref1: Ref<Settler>,
     building_ref: Ref<Building>,

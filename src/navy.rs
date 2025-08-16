@@ -1,16 +1,8 @@
 use crate::Version;
+use crate::Versioned;
 use crate::helper_structs::*;
-use crate::{buildings::Building, movement::NavyPath, player::Stock};
+use crate::{buildings::Building, movement::PathBase, player::Stock};
 use binrw::binrw;
-
-#[binrw]
-#[derive(Debug)]
-pub struct Navy {
-    version: Version!(2, "Navy System"),
-    #[brw(assert(init.bool))]
-    init: Bool,
-    ships: Array<(PlayerId, Ship)>,
-}
 
 #[binrw]
 #[derive(Debug)]
@@ -18,7 +10,7 @@ pub struct Ship {
     version: Version!(3, "Navy Ship"),
     id: Uuid,
     construction: Construction,
-    path: NavyPath,
+    path: Versioned!(0, "Navy Path", PathBase),
     stock: Stock,
     building_ref: Ref<Building>,
     idk: u32,

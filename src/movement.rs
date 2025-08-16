@@ -1,4 +1,5 @@
 use crate::Version;
+use crate::Versioned;
 use crate::{helper_structs::*, net::Street};
 use binrw::binrw;
 
@@ -19,21 +20,14 @@ pub struct SettlerMovement {
 #[derive(Debug)]
 pub struct AnimalMovement {
     version: Version!(1, "Navy Movement"),
-    path: ResourcePath,
+    path: Versioned!(0, "Resources Path", PathBase),
     pos: PatternCursor,
     movement_base: Base,
 }
 
 #[binrw]
 #[derive(Debug)]
-pub struct NavyPath {
-    version: Version!(0, "Navy Path"),
-    path_base: PathBase,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct PathBase {
+pub struct PathBase {
     version: Version!(1, "Movement Path Base"),
     init: Bool,
     #[brw(if (init.bool))]
@@ -44,13 +38,6 @@ struct PathBase {
     idk1: Option<i32>,
     #[brw(if (init.bool))]
     idk2: Option<Bool>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct ResourcePath {
-    version: Version!(0, "Resources Path"),
-    base: PathBase,
 }
 
 #[binrw]

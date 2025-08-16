@@ -1,4 +1,6 @@
 use crate::Version;
+use crate::VersionI;
+use crate::Versioned;
 use crate::helper_structs::BuildingType::*;
 use crate::helper_structs::*;
 use crate::navy::Ship;
@@ -11,9 +13,7 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Villages {
-    version: Version!(0, "VillageSystem"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "VillageSystem"),
     buildings: Array<Building>,
     remains: Array<Remains>,
     orders: Orders,
@@ -29,7 +29,7 @@ pub struct Building {
     pos: PatternCursor,
     ticker: Ticker,
     depot: Depot,
-    workers: Workers,
+    workers: Versioned!(0, "VillageWorkers", Array<Ref<Worker>>),
     deposit_ref: Ref<Deposit>,
     animal_ref: Ref<Animal>,
     construction: Construction,
@@ -42,12 +42,12 @@ pub struct Building {
     mining_pos: OptionalPatternCursor,
     territory_updater: TerritoryUpdater,
     bulldozing: Bulldozing,
-    order: OrderContainer,
+    order: Versioned!(0, "Order Container", Array<Ref<Order>>),
     idk5: Bool,
     #[brw(if(matches!(building_type, Castle | Barracks | GuardHouse | Tower | WatchTower | Fortress)))]
     military: Option<VillageMilitary>,
     carrier_refresh: CarrierRefresh,
-    good_flags: GoodFlags,
+    good_flags: Versioned!(0, "VillageGoodFlags", Array<GoodFlags>),
     idk6: u32,
     tick: u32,
     #[brw(if(matches!(building_type, Catapult)))]
@@ -77,36 +77,19 @@ struct Depot {
     version: Version!(0, "VillageDepot"),
     stock1: Stock,
     stock2: Stock,
-    needed_goods: NeededGoods,
-    returning_goods: ReturningGoods,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct NeededGoods {
-    version: Version!(0, "Need Good System"),
-    needed_goods: Array<Package>,
+    needed_goods: Versioned!(0, "Need Good System", Array<Package>),
+    returning_goods: Versioned!(
+        0,
+        "Returning Good System",
+        Array<Ref<crate::transport::Package>>
+    ),
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Package {
-    idk: u32,
+    idk: u32, //TODO
     package_ref: Ref<crate::transport::Package>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct ReturningGoods {
-    version: Version!(0, "Returning Good System"),
-    returning_goods: Array<Ref<crate::transport::Package>>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct Workers {
-    version: Version!(0, "VillageWorkers"),
-    workers: Array<Ref<Worker>>,
 }
 
 #[binrw]
@@ -133,7 +116,7 @@ struct Production {
 #[derive(Debug)]
 struct SettlerSpawn {
     version: Version!(0, "Village SettlerSpawn"),
-    idk: u32,
+    idk: u32, //TODO
 }
 
 #[binrw]
@@ -155,45 +138,17 @@ struct Bulldozing {
 
 #[binrw]
 #[derive(Debug)]
-pub struct OrderContainer {
-    version: Version!(0, "Order Container"),
-    orders: Array<Ref<Order>>,
-}
-
-#[binrw]
-#[derive(Debug)]
 struct VillageMilitary {
     version: Version!(2, "Village Military"),
-    soldiers: Soldiers,
-    attackers: Attackers,
+    soldiers: Versioned!(0, "VillageSoldiers", SettlersContainer),
+    attackers: Versioned!(0, "Village Attackers", SettlersContainer),
     enemy_distance: u32,
     idk: f32,
     enable_coin_supply: Bool,
     idk2: u32,
     soldier_rserve: [u32; 5],
-    interceptors: Interceptors,
+    interceptors: Versioned!(0, "Village Interceptors", SettlersContainer),
     coin_supply2: Bool,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct Soldiers {
-    version: Version!(0, "VillageSoldiers"),
-    settlers: SettlersContainer,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct Attackers {
-    version: Version!(0, "Village Attackers"),
-    settlers: SettlersContainer,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct Interceptors {
-    version: Version!(0, "Village Interceptors"),
-    settlers: SettlersContainer,
 }
 
 #[binrw]
@@ -207,14 +162,15 @@ pub struct SettlersContainer {
 #[derive(Debug)]
 struct CarrierRefresh {
     version: Version!(0, "Village CarrierRefresh"),
-    idk: u32,
+    idk: u32, //TODO
 }
 
 #[binrw]
 #[derive(Debug)]
 struct GoodFlags {
-    version: Version!(0, "VillageGoodFlags"),
-    flags: Array<(Good, u32, u32)>, // lock, evict
+    good: Good,
+    lock: Bool,
+    evict: Bool,
 }
 
 #[binrw]
@@ -232,20 +188,18 @@ struct Catapult {
 #[binrw]
 #[derive(Debug)]
 struct Harbor {
-    version: Version!(6, "Village Harbor"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(6, "Village Harbor"),
     landing_positions: Array<LandingPosition>,
     idk: u32,
     expedition: Expedition,
-    orders: OrderContainer,
+    orders: Versioned!(0, "Order Container", Array<Ref<Order>>),
     harbor_receivers: Array<HarborReceiver>,
     ship_ref: Ref<Ship>,
     settlers: SettlersContainer,
     idk2: u32,
-    needs_transfer0: NeedsTransfer,
-    needs_transfer1: NeedsTransfer,
-    needs_transfer2: NeedsTransfer,
+    needs_transfer0: Version!(0, "Village HarboarNeedsTransfer"),
+    needs_transfer1: Version!(0, "Village HarboarNeedsTransfer"),
+    needs_transfer2: Version!(0, "Village HarboarNeedsTransfer"),
 }
 
 #[binrw]
@@ -271,14 +225,8 @@ struct Expedition {
 #[derive(Debug)]
 struct HarborReceiver {
     version: Version!(0, "Village HarborReceiver"),
-    idk: u32,
+    idk: u32, //TODO
     building_ref: Ref<Building>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct NeedsTransfer {
-    version: Version!(0, "Village HarboarNeedsTransfer"),
 }
 
 #[binrw]
@@ -299,9 +247,7 @@ struct Upgrade {
 struct Remains {
     remains_type: RemainsType, //maybe in wrong order
     building_type: BuildingType,
-    version: Version!(1, "VillageRemains"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(1, "VillageRemains"),
     pos: PatternCursor,
     someproperty: u32,
     blocking: Blocking,
@@ -311,26 +257,22 @@ struct Remains {
 #[binrw]
 #[derive(Debug)]
 struct Blocking {
-    version: Version!(0, "Blocking"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(0, "Blocking"),
     pos: PatternCursor,
-    size: u32,
+    size: u32, //TODO
 }
 
 #[binrw]
 #[derive(Debug)]
 struct Orders {
-    version: Version!(2, "Order System"),
-    #[brw(assert(init.bool))]
-    init: Bool,
+    version: VersionI!(2, "Order System"),
     orders: Array<Order>,
-    idk: i32,
+    idk: i32, //TODO
 }
 
 #[binrw]
 #[derive(Debug)]
-struct Order {
+pub struct Order {
     version: Version!(3, "Village Order"),
     id: Uuid,
     ordered: Good,
