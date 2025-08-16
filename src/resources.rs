@@ -57,7 +57,7 @@ pub struct Animal {
     animal_type: AnimalType,
     version: Version!(2, "Resources Animal"),
     id: Uuid,
-    idk: f32,
+    age: Time,
     pos: PatternCursor,
     movement: AnimalMovement,
     idk1: u32, // 2 = is interpolating movement

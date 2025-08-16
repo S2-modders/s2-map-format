@@ -232,7 +232,7 @@ struct Catapult {
     target_radomized: PatternCursor,
     time_next_direction_set: f32,
     time_stone_ordered: f32,
-    direction: u32, //TODO: enum
+    direction: Direction,
     next_direction: u32,
 }
 

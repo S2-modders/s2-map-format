@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::Version;
 use crate::ai::Ai;
 use crate::buildings::Villages;
@@ -17,12 +19,13 @@ use strum::EnumCount;
 #[binrw]
 #[derive(Debug)]
 pub struct MapFile {
+    pub mapinfo: MapInfo,
     pub logic: Logic,
     pub map: Map,
     pub resources: Resources,
     pub doodads: Doodads,
     pub ambients: Ambients,
-    #[brw(if( logic.mapinfo.file_type == FileType::SaveGame))]
+    #[brw(if(mapinfo.file_type == FileType::SaveGame))]
     pub gamefilelogic: Option<GameFileLogic>,
 }
 #[binrw]
@@ -95,37 +98,46 @@ pub struct GameScript {
 #[binrw]
 #[derive(Debug)]
 pub struct Logic {
-    pub mapinfo: MapInfo,
     pub version: Version!(7, "LogicSystem"),
-    pub max_id: i64,
+    pub uuid_generator: UuidGenerator,
     pub init: Bool,
     #[brw(if(version.version > 0 && version.version < 6))]
     pub unused: u32,
     #[brw(if(version.version > 3))]
-    pub seconds_per_tick: f32,
+    pub duration_between_ticks: Option<Time>,
     #[brw(if(version.version > 3))]
-    pub ticked_seconds: f32,
+    pub time_ticked: Option<Time>,
     #[brw(if(version.version > 3))]
-    pub seconds_passed: f32,
+    pub time_passed: Option<Time>,
     #[brw(if(version.version > 4))]
     pub trigger_sys: Option<TriggerSys>,
     #[brw(if(version.version > 6))]
-    pub tick: i32,
+    pub tick: Option<i32>,
+}
+
+#[binrw]
+#[derive(Debug)]
+pub struct UuidGenerator(i64);
+
+impl UuidGenerator {
+    pub fn next_id(&mut self) -> Uuid {
+        let res = self.0.into();
+        self.0 += 1;
+        res
+    }
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct MapInfo {
     pub version: Version!(9, "MapInfo"),
-    pub idk: Array<PatternCursor>,
+    pub start_positions: Array<PatternCursor>,
     pub map_name: Str,
     #[brw(if(version.version > 1))]
-    pub width: u32,
-    #[brw(if(version.version > 1))]
-    pub height: u32,
-    pub idk2: [u32; PlayerId::COUNT],
+    pub dimensions: Option<Dimensions>,
+    pub player_types: [PlayerType; PlayerId::COUNT],
     #[brw(if(version.version > 2 && version.version < 6))]
-    pub idk3: [(u32, u32, u32); PlayerId::COUNT],
+    pub idk3: Option<[(u32, u32, u32); PlayerId::COUNT]>,
     #[brw(if(version.version > 5))]
     pub idk3_2: Option<[(u32, PlayerId, i32, u32); PlayerId::COUNT]>,
     #[brw(if(version.version > 0))]
@@ -142,6 +154,15 @@ pub struct MapInfo {
     pub player_names: Option<[Str; PlayerId::COUNT]>,
     #[brw(if(version.version > 8))]
     pub idk6: Option<u32>,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum PlayerType {
+    None = 0,
+    Ai = 1,
+    Player = 2,
 }
 
 #[binrw]
@@ -187,7 +208,13 @@ pub struct Trigger {
     name: Str,
     player_id: PlayerId,
     #[brw(if(version.version > 0))]
-    time: f32,
+    time: Option<Time>,
+}
+
+impl Ided for Trigger {
+    fn id(&self) -> Uuid {
+        self.id
+    }
 }
 
 #[binrw]
@@ -201,7 +228,7 @@ pub enum TriggerType {
 
 impl Trigger {
     pub fn new(
-        logic: &mut Logic,
+        id_generator: &mut UuidGenerator,
         trigger_type: TriggerType,
         pos: (u32, u32),
         idk: u32,
@@ -211,9 +238,11 @@ impl Trigger {
         Trigger {
             version: <Version!(1, "TriggerObject")>::new::<1>(),
             init: true.into(),
-            id: Uuid::new(logic),
+            id: id_generator.next_id(),
             active: true.into(),
-            time: 0.0,
+            time: Some(Time {
+                duration: Duration::default(),
+            }),
             trigger_type,
             pos: pos.into(),
             idk,

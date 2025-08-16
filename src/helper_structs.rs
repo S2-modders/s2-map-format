@@ -1,10 +1,8 @@
 use binrw::{BinRead, BinWrite, binrw};
 use bounded_integer::BoundedU32;
 use derive_more::IsVariant;
-use std::{fmt, marker::PhantomData};
+use std::{fmt, marker::PhantomData, time::Duration};
 use strum::*;
-
-use crate::Logic;
 
 #[macro_export]
 macro_rules! Version {
@@ -154,6 +152,15 @@ pub struct Uuid {
     id: i64,
 }
 
+impl From<i64> for Uuid {
+    fn from(id: i64) -> Self {
+        Self {
+            id,
+            ..Default::default()
+        }
+    }
+}
+
 impl Default for Uuid {
     fn default() -> Self {
         Self {
@@ -166,17 +173,6 @@ impl Default for Uuid {
 impl fmt::Debug for Uuid {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.id.fmt(f)
-    }
-}
-
-impl Uuid {
-    pub fn new(logic: &mut Logic) -> Uuid {
-        let res = Uuid {
-            id: logic.max_id,
-            ..Default::default()
-        };
-        logic.max_id += 1;
-        res
     }
 }
 
@@ -637,9 +633,6 @@ impl<const MAX_VER: u32, const CRC: u32, const LEN: u32> fmt::Debug
     for InnerVersion<MAX_VER, CRC, LEN>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if MAX_VER == 0 {
-            return Ok(());
-        }
         self.version.get().fmt(f)
     }
 }
@@ -746,6 +739,26 @@ impl fmt::Debug for PatternCursor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         (self.x, self.y).fmt(f)
     }
+}
+
+#[binrw]
+pub struct Time {
+    #[br(try_map = Duration::try_from_secs_f32)]
+    #[bw(map = Duration::as_secs_f32)]
+    pub duration: Duration,
+}
+
+impl fmt::Debug for Time {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.duration.fmt(f)
+    }
+}
+
+#[binrw]
+#[derive(Debug)]
+pub struct Dimensions {
+    width: u32,
+    height: u32,
 }
 
 #[binrw]

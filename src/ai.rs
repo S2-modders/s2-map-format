@@ -27,7 +27,6 @@ struct AiPlayer {
     version: Version!(6, "AI Player"),
     init: Bool,
     #[brw(if(version.version > 1))]
-    #[br(dbg)]
     ai_type: Option<AiType>,
     #[brw(if(version.version < 6 || init.bool))]
     #[brw(args(version.version))]

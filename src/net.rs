@@ -69,7 +69,7 @@ struct Specialist {
 pub struct Street {
     owner: PlayerId,
     #[brw(magic = 0x43d79823u32)]
-    version: Version!(1, "NetStreet"), // TODO: why?
+    version: Version!(1, "NetStreet"),
     id: Uuid,
     poses: Array<PatternCursor>,
     segments: u32,
@@ -84,7 +84,12 @@ pub struct Street {
     stone_score: f32,
     is_stone: Bool,
     is_waterway: Bool,
-    idk: [Bool; 3],
+    #[brw(if(version.version > 0))]
+    idk: Option<Bool>,
+    #[brw(if(version.version > 0))]
+    has_second_carrier: Option<Bool>,
+    #[brw(if(version.version > 0))]
+    is_not_waterway: Option<Bool>,
 }
 
 impl Ided for Street {

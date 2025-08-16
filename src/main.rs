@@ -5,7 +5,6 @@ mod helper_structs;
 mod logic;
 mod map;
 use crate::logic::MapFile;
-use logic::Logic;
 mod ai;
 mod buildings;
 mod doodads;
@@ -44,7 +43,7 @@ fn main() -> Result<()> {
             // .write_args(&mut BufWriter::new(&mut File::open(s)?), (s,))?;
             let remaining = &reader.get_ref()[reader.position() as usize..];
             println!("remaining: {}", remaining.len());
-            println!("type: {:?}", map.logic.mapinfo.file_type);
+            println!("type: {:?}", map.mapinfo.file_type);
             println!("{:?}/{:?}", reader.position(), reader.get_ref().len());
             println!("remaining bytes (50): {:?}", &remaining[..50]);
             Ok(())
