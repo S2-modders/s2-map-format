@@ -1,6 +1,7 @@
-use binrw::{BinRead, BinWrite, binrw};
+use binrw::{BinRead, BinResult, BinWrite, binrw};
 use bounded_integer::BoundedU32;
 use derive_more::IsVariant;
+use grid::Grid;
 use std::{fmt, marker::PhantomData, time::Duration};
 use strum::*;
 
@@ -124,14 +125,14 @@ where
 #[brw(repr = u32)]
 #[derive(Debug, EnumCount, FromRepr)]
 pub enum Direction {
-    None = 0,
+    East = 0,
     SouthEast = 1,
     SouthWest = 2,
     West = 3,
     NorthWest = 4,
     NorthEast = 5,
-    Ost = 6,
-    I,
+    North = 6,
+    South = 7,
 }
 
 #[binrw]
@@ -296,6 +297,47 @@ pub enum Good {
 #[brw(repr = u32)]
 #[repr(u32)]
 #[derive(Debug)]
+pub enum BuildingType {
+    Empty = u32::MAX, //TODO: requered for Ai constructon order
+    Castle = 0xf6e26cb3,
+    WoodCutter = 0x5a926fa3,
+    Forester = 0x3ff43d23,
+    StonePit = 0x043185f3,
+    Fisher = 0x3ef3bc43,
+    Hunter = 0x3c10e223,
+    Spring = 0xc2c7c303,
+    Barracks = 0xa7bbc573,
+    GuardHouse = 0x12e67603,
+    Tower = 0x7d00b493,
+    IronMine = 0x18282bd3,
+    GoldMine = 0x154c1dae,
+    CoalMine = 0x9b027dae,
+    StoneMine = 0x6222a09e,
+    SawMill = 0x918ff373,
+    Mill = 0xf7e2ed93,
+    Bakery = 0x0af7bb13,
+    SlaughterHouse = 0x5c5e9743,
+    Smeltery = 0x154551b3,
+    Locksmithery = 0xfaada31e,
+    Depot = 0xb3965083,
+    ShipYard = 0x78f8184e,
+    Brewery = 0xfbca3a8e,
+    Smithy = 0xb779ab83,
+    Mint = 0xbc203663,
+    Catapult = 0xa1445ef3,
+    WatchTower = 0x281f0783,
+    Farm = 0x07f63873,
+    Piggery = 0xa6c72ede,
+    DonkeyBreeding = 0x1f0fcd1e,
+    Fortress = 0x8c137e93,
+    Harbor = 0xcf526ff3,
+    Construction = 0x4a2ce4de,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[repr(u32)]
+#[derive(Debug)]
 pub enum Tribe {
     Romans = 0,
     Africans = 1,
@@ -396,6 +438,7 @@ pub trait Ided {
     fn id(&self) -> Uuid;
 }
 
+pub type Cooldown<const CAP: u32> = CapedU32<CAP>;
 #[binrw]
 pub struct CapedU32<const CAP: u32> {
     #[br(try_map = |x: u32| x.try_into())]
@@ -462,7 +505,7 @@ pub struct ElevationCursor {
 
 impl fmt::Debug for ElevationCursor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        (self.x, self.y).fmt(f)
+        (self.x as f32 / 4.0, self.y as f32 / 4.0).fmt(f)
     }
 }
 
@@ -485,7 +528,7 @@ impl Default for OptionalPatternCursor {
 }
 
 #[binrw]
-#[derive(Default)]
+#[derive(Default, PartialEq, Eq, Clone, Copy)]
 pub struct PatternCursor {
     version: Version!(0, "PatternCursor"),
     #[br(assert(x < 1000))]
@@ -535,4 +578,40 @@ pub struct Dimensions {
 pub struct MapIdxPos {
     x: u32,
     y: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+pub struct PlayerMap<T>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
+{
+    dimensions: (u32, u32),
+    #[br(count = dimensions.0 * dimensions.1)]
+    #[br(map = |grid: [Vec<T>; PlayerId::COUNT]| grid.map(|x| (x, dimensions.1 as usize).into()))]
+    #[bw(write_with = player_map_writer)]
+    pub grid: [Grid<T>; PlayerId::COUNT],
+}
+
+#[binrw::writer(writer, endian)]
+fn player_map_writer<T>(map: &[Grid<T>; PlayerId::COUNT]) -> BinResult<()>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
+{
+    for grid in map {
+        grid.flatten().write_options(writer, endian, ())?;
+    }
+    Ok(())
+}
+#[binrw]
+#[derive(Debug)]
+pub struct Map<T>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug + 'static,
+{
+    dimensions: (u32, u32),
+    #[br(count = dimensions.0 * dimensions.1)]
+    #[br(map = |grid: Vec<T>| (grid, dimensions.1 as usize).into())]
+    #[bw(map = |grid| grid.flatten())]
+    pub grid: Grid<T>,
 }

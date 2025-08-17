@@ -3,23 +3,39 @@ use crate::VersionI;
 use crate::VersionedI;
 use crate::helper_structs::*;
 use bilge::prelude::*;
-use bilge::{DebugBits, bitsize};
 use binrw::binrw;
-use strum::*;
 
 #[binrw]
 #[derive(Debug)]
-pub struct Map {
+pub struct MapSys {
     version: VersionI!("MapSystem"),
     width: u32,
     height: u32,
-    elevation_map: ElevationMap,
+    elevation_version: VersionI!(1, "ElevationMap"),
+    min_elevation: i32,
+    elevations: Map<i32>,
     pattern_map: VersionedI!("PatternMap", Array<PatternType>),
     gird_state_map: VersionedI!("GridStatesMap", Array<GridStates>),
-    resource_map: ResourceMap,
-    territory_map: TerritoryMap,
-    exploration_map: ExplorationMap,
-    contient_map: ContinentMap,
+    resource_map: VersionedI!("Map Resources", Map<(u32, Good)>),
+    territory_map: VersionedI!("Map Territory", Map<Optional<PlayerId>>),
+    exploration_map: VersionedI!(1, "Map Exploration", PlayerMap<Bool>),
+    continent_version: VersionI!(1, "Map Continents"),
+    continentid_map: Map<u32>,
+    continentdata: Array<Continent>,
+    total_continent_tiles: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
+struct Continent {
+    version: Version!(3, "Map Continent"),
+    continent_tiles: u32,
+    //TODO is it really an init field?
+    init: Bool,
+    id: u32,
+    region: (u32, u32, u32, u32),
+    poses: Array<PatternCursor>,
+    adjacent_continents: Array<u32>,
 }
 
 #[binrw]
@@ -102,17 +118,6 @@ pub enum PatternType {
     PatternMSeaground01 = 0xfa1ca591,
 }
 
-#[binrw]
-#[derive(Debug)]
-struct ElevationMap {
-    version: VersionI!(1, "ElevationMap"),
-    min_elevation: i32,
-    width: u32,
-    height: u32,
-    #[br(count = width * height)]
-    elevations: Vec<i32>,
-}
-
 #[bitsize(32)]
 #[binrw]
 #[derive(DebugBits)]
@@ -149,59 +154,4 @@ struct GridStates {
     idk29: bool,
     idk30: bool,
     idk31: bool,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct ResourceMap {
-    version: VersionI!("Map Resources"),
-    width: u32,
-    height: u32,
-    #[br(count = width*height)]
-    resources: Vec<(u32, Good)>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct TerritoryMap {
-    version: VersionI!("Map Territory"),
-    width: u32,
-    height: u32,
-    #[br(count = width * height)]
-    territories: Vec<Optional<PlayerId>>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct ExplorationMap {
-    version: VersionI!(1, "Map Exploration"),
-    width: u32,
-    height: u32,
-    #[br(count = width * height)]
-    explored: [Vec<Bool>; PlayerId::COUNT],
-}
-
-#[binrw]
-#[derive(Debug)]
-struct ContinentMap {
-    version: VersionI!(1, "Map Continents"),
-    width: u32,
-    height: u32,
-    #[br(count = width * height)]
-    continentmap: Vec<u32>,
-    continentdata: Array<Continent>,
-    total_continent_tiles: u32,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct Continent {
-    version: Version!(3, "Map Continent"),
-    continent_tiles: u32,
-    //TODO is it really an init field?
-    init: Bool,
-    id: u32,
-    region: (u32, u32, u32, u32),
-    poses: Array<PatternCursor>,
-    adjacent_continents: Array<u32>,
 }

@@ -1,6 +1,6 @@
 use binrw::BinRead;
 use decryptor_s2::*;
-use simple_eyre::eyre::Result;
+use simple_eyre::eyre::{OptionExt, Result};
 mod helper_structs;
 mod logic;
 mod map;
@@ -22,8 +22,7 @@ fn main() -> Result<()> {
     std::env::args().collect::<Vec<String>>()[1..]
         .iter()
         .try_for_each(|s| -> Result<()> {
-            let reader = &mut std::io::Cursor::new(std::fs::read(s)?);
-            let decompressed = CompressedFile::read_args(reader, (s,))?;
+            let decompressed = decryptor_s2::decrypt(s)?.ok_or_eyre("Not a map file: {s}")?;
             assert!(
                 matches!(decompressed.game, Game::Dng),
                 "Map is from wrong game"

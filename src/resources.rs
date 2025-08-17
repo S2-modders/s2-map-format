@@ -80,46 +80,6 @@ pub enum DepositType {
     MedStone05 = 0x1dab7fd4,
     MedStone06 = 0x1dab7fd5,
 }
-#[binrw]
-#[brw(repr = u32)]
-#[repr(u32)]
-#[derive(Debug)]
-pub enum BuildingType {
-    Empty = u32::MAX, //TODO: requered for Ai constructon order
-    Castle = 0xf6e26cb3,
-    WoodCutter = 0x5a926fa3,
-    Forester = 0x3ff43d23,
-    StonePit = 0x043185f3,
-    Fisher = 0x3ef3bc43,
-    Hunter = 0x3c10e223,
-    Spring = 0xc2c7c303,
-    Barracks = 0xa7bbc573,
-    GuardHouse = 0x12e67603,
-    Tower = 0x7d00b493,
-    IronMine = 0x18282bd3,
-    GoldMine = 0x154c1dae,
-    CoalMine = 0x9b027dae,
-    StoneMine = 0x6222a09e,
-    SawMill = 0x918ff373,
-    Mill = 0xf7e2ed93,
-    Bakery = 0x0af7bb13,
-    SlaughterHouse = 0x5c5e9743,
-    Smeltery = 0x154551b3,
-    Locksmithery = 0xfaada31e,
-    Depot = 0xb3965083,
-    ShipYard = 0x78f8184e,
-    Brewery = 0xfbca3a8e,
-    Smithy = 0xb779ab83,
-    Mint = 0xbc203663,
-    Catapult = 0xa1445ef3,
-    WatchTower = 0x281f0783,
-    Farm = 0x07f63873,
-    Piggery = 0xa6c72ede,
-    DonkeyBreeding = 0x1f0fcd1e,
-    Fortress = 0x8c137e93,
-    Harbor = 0xcf526ff3,
-    Construction = 0x4a2ce4de,
-}
 
 #[binrw]
 #[derive(Debug)]

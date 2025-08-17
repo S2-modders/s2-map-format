@@ -12,7 +12,7 @@ pub struct SettlerMovement {
     movement_interpolator: Interpolator,
     idk: u32,
     sub_tile_pos: ElevationCursor,
-    idk2: Bool,
+    idk2: Bool, //is swimming maybe
     pos: PatternCursor,
 }
 
@@ -22,7 +22,13 @@ pub struct AnimalMovement {
     version: Version!(1, "Navy Movement"),
     path: Versioned!("Resources Path", PathBase),
     pos: PatternCursor,
-    movement_base: Base,
+    base_version: Version!("Movement Base"),
+    #[br(assert(pos == base_pos))]
+    #[bw(calc = *pos)]
+    base_pos: PatternCursor,
+    idk: PatternCursor,
+    idk1: OptionalPatternCursor,
+    interpolator: Interpolator,
 }
 
 #[binrw]
@@ -38,16 +44,6 @@ pub struct PathBase {
     idk1: Option<i32>,
     #[brw(if (init.bool))]
     idk2: Option<Bool>,
-}
-
-#[binrw]
-#[derive(Debug, Default)]
-struct Base {
-    version: Version!("Movement Base"),
-    pos: PatternCursor,
-    idk: PatternCursor,
-    idk1: OptionalPatternCursor,
-    interpolator: Interpolator,
 }
 
 #[binrw]

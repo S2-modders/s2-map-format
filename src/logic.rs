@@ -8,7 +8,7 @@ use crate::ai::Ai;
 use crate::buildings::Villages;
 use crate::doodads::Doodads;
 use crate::helper_structs::*;
-use crate::map::Map;
+use crate::map::MapSys;
 use crate::military::Military;
 use crate::navy::Ship;
 use crate::net::NetSys;
@@ -23,12 +23,12 @@ use strum::EnumCount;
 pub struct MapFile {
     pub mapinfo: MapInfo,
     pub logic: Logic,
-    pub map: Map,
+    pub map: MapSys,
     pub resources: Resources,
     pub doodads: Doodads,
     pub ambients: VersionedI!("Logic Ambients", Array<(AmbientType, PatternCursor)>),
     #[brw(if(mapinfo.file_type == FileType::SaveGame))]
-    pub gamefilelogic: Option<GameFileLogic>,
+    pub save_file_info: Option<GameFileLogic>,
 }
 
 #[binrw]
@@ -94,7 +94,7 @@ struct PlayerStats {
 pub struct GameScript {
     version: VersionI!("GameScript"),
     map_name: Str,
-    persistent: Array<(Str, u32)>,
+    lua_persistent: Array<(Str, u32)>,
 }
 
 #[binrw]

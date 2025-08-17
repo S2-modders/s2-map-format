@@ -8,7 +8,9 @@ use crate::net::{Flag, Street};
 use crate::player::Stock;
 use crate::resources::{Animal, Deposit};
 use crate::settlers::{Settler, Worker};
+use crate::transport::Package;
 use binrw::binrw;
+use strum::EnumCount;
 
 #[binrw]
 #[derive(Debug)]
@@ -38,7 +40,7 @@ pub struct Building {
     idk3: u32,
     tribe: Tribe,
     flag_ref: Ref<Flag>,
-    settler_spawn: SettlerSpawn,
+    settler_spawn: Versioned!("Village SettlerSpawn", Cooldown<30>),
     mining_pos: OptionalPatternCursor,
     territory_updater: TerritoryUpdater,
     bulldozing: Bulldozing,
@@ -46,7 +48,7 @@ pub struct Building {
     idk5: Bool,
     #[brw(if(matches!(building_type, Castle | Barracks | GuardHouse | Tower | WatchTower | Fortress)))]
     military: Option<VillageMilitary>,
-    carrier_refresh: CarrierRefresh,
+    carrier_refresh: Versioned!("Village CarrierRefresh", Cooldown<100>),
     good_flags: Versioned!("VillageGoodFlags", Array<GoodFlags>),
     idk6: u32,
     tick: u32,
@@ -77,19 +79,8 @@ struct Depot {
     version: Version!("VillageDepot"),
     stock1: Stock,
     stock2: Stock,
-    needed_goods: Versioned!("Need Good System", Array<Package>),
-    returning_goods: Versioned!(
-        0,
-        "Returning Good System",
-        Array<Ref<crate::transport::Package>>
-    ),
-}
-
-#[binrw]
-#[derive(Debug)]
-struct Package {
-    idk: u32, //TODO
-    package_ref: Ref<crate::transport::Package>,
+    needed_goods: Versioned!("Need Good System", Array<(Good, Ref<Package>)>),
+    returning_goods: Versioned!(0, "Returning Good System", Array<Ref<Package>>),
 }
 
 #[binrw]
@@ -114,16 +105,9 @@ struct Production {
 
 #[binrw]
 #[derive(Debug)]
-struct SettlerSpawn {
-    version: Version!("Village SettlerSpawn"),
-    idk: u32, //TODO
-}
-
-#[binrw]
-#[derive(Debug)]
 struct TerritoryUpdater {
     version: Version!("Village Territory Updater"),
-    init: Bool,
+    is_updated: Bool,
 }
 
 #[binrw]
@@ -132,7 +116,7 @@ struct Bulldozing {
     version: Version!(1, "VillageBulldozing"),
     progress: f32,
     settler_ref: Ref<Settler>,
-    idk: u32,
+    direction: Direction,
     building_type: BuildingType,
 }
 
@@ -146,9 +130,21 @@ struct VillageMilitary {
     idk: f32,
     enable_coin_supply: Bool,
     idk2: u32,
-    soldier_rserve: [u32; 5],
+    soldier_rserve: [CapedU32<15>; SoldierType::COUNT], // castle reseave
     interceptors: Versioned!("Village Interceptors", SettlersContainer),
-    coin_supply2: Bool,
+    evict: Bool,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[repr(u32)]
+#[derive(Debug, EnumCount)]
+pub enum SoldierType {
+    Soldier0 = 0,
+    Soldier1 = 1,
+    Soldier2 = 2,
+    Soldier3 = 3,
+    Soldier4 = 4,
 }
 
 #[binrw]
@@ -156,13 +152,6 @@ struct VillageMilitary {
 pub struct SettlersContainer {
     version: Version!("Settlers Container"),
     settlers: Array<Ref<Settler>>,
-}
-
-#[binrw]
-#[derive(Debug)]
-struct CarrierRefresh {
-    version: Version!("Village CarrierRefresh"),
-    idk: u32, //TODO
 }
 
 #[binrw]
@@ -190,13 +179,13 @@ struct Catapult {
 struct Harbor {
     version: VersionI!(6, "Village Harbor"),
     landing_positions: Array<LandingPosition>,
-    idk: u32,
+    needs: Array<HarborNeeds>,
     expedition: Expedition,
     orders: Versioned!("Order Container", Array<Ref<Order>>),
     harbor_receivers: Array<HarborReceiver>,
     ship_ref: Ref<Ship>,
     settlers: SettlersContainer,
-    idk2: u32,
+    cooldown: Cooldown<99>,
     needs_transfer0: Version!("Village HarboarNeedsTransfer"),
     needs_transfer1: Version!("Village HarboarNeedsTransfer"),
     needs_transfer2: Version!("Village HarboarNeedsTransfer"),
@@ -213,6 +202,17 @@ struct LandingPosition {
 
 #[binrw]
 #[derive(Debug)]
+struct HarborNeeds {
+    version: Version!(1, "Village HarborNeeds"),
+    need: Good,
+    idk: u32,
+    building_ref: Ref<Building>,
+    ship_ref: Ref<Ship>,
+    idk2: u32,
+}
+
+#[binrw]
+#[derive(Debug)]
 struct Expedition {
     version: Version!("Village Expedition"),
     expedition_state: u32,
@@ -225,6 +225,7 @@ struct Expedition {
 #[derive(Debug)]
 struct HarborReceiver {
     version: Version!("Village HarborReceiver"),
+    #[br(dbg)]
     idk: u32, //TODO
     building_ref: Ref<Building>,
 }
