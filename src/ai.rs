@@ -4,10 +4,12 @@ use crate::Versioned;
 use crate::VersionedI;
 use crate::buildings::Building;
 use crate::helper_structs::*;
+use crate::map::ContinentId;
 use crate::net::Flag;
 use crate::player::Player;
 use binrw::binrw;
 use binrw::helpers::args_iter;
+use nonmax::NonMaxU64;
 
 #[binrw]
 #[derive(Debug)]
@@ -65,7 +67,7 @@ pub struct InitAiPlayer {
     food_arrangement: VersionI!("AI FoodArrangement"),
     goods_arrangement: VersionedI!("AI GoodsArrangement", GoodsArrangementStage),
     production_control: VersionedI!("AI ProductionControl", GoodOrSettler),
-    conquered_continents: VersionedI!("Ai ConqueredContinents", Array<u32>),
+    conquered_continents: VersionedI!("Ai ConqueredContinents", Array<ContinentId>),
 }
 
 impl Positioned<TerritoryMapElement> for Map<TerritoryMapElement> {
@@ -134,7 +136,9 @@ enum NeedCreationState {
 struct Destruction {
     version: VersionI!(2, "Ai DestructionSystem"),
     curr_flag_idx: Idx<Flag>,
-    some_ref: u64,
+    #[br(try_map = |x: u64| NonMaxU64::try_from(x).map(Uuid::from).map(Uuid::into))]
+    #[bw(map = |x| x.id.id.get())]
+    some_ref: Ref<AiBuilding>, //TODO
 }
 
 #[binrw]
@@ -327,7 +331,7 @@ pub struct Cell {
     destruction_size: u32,
     aibuilding_ref: OptRef<AiBuilding>,
     harbors: Versioned!("Ai ReferncesBuilding", Array<Ref<AiBuilding>>),
-    continent_id: u32,
+    continent_id: ContinentId,
     idk: CellConstruction,
     aibuilding_ref2: OptRef<AiBuilding>,
 }
@@ -500,7 +504,9 @@ enum ConstructionOrderType {
 struct StreetConstruction {
     version: VersionI!(2, "AI StreetConstruction"),
     curr_flag_idx: i32,
-    target_flag: u64, //Flag ref
+    #[br(map = |x: u64| x.into())]
+    #[bw(map = |x| u64::from(*x))]
+    target_flag: OptRef<Flag>,
     idk: u32,
     tried_flag_poses: Array<PatternCursor>,
     idk2: Array<(u32, Ref<Flag>)>, //TODO idk
@@ -531,7 +537,9 @@ struct StreetOptimizer {
 #[derive(Debug)]
 struct StreetRouteOptimizer {
     version: VersionI!(1, "AI StreetRouteOptimizer"),
-    aibuilding_ref: u64,
+    #[br(try_map = |x: u64| NonMaxU64::try_from(x).map(Uuid::from).map(Uuid::into))]
+    #[bw(map = |x| x.id.id.get())]
+    aibuilding_ref: Ref<AiBuilding>,
     poses: Array<PatternCursor>,
     idk: i32,
     idk2: u32,
@@ -658,7 +666,7 @@ pub struct ResourceMapElement {
     good: Good,
     pattern_type: u32, //idk
     deposit_number: u32,
-    continent_id: u32,
+    continent_id: ContinentId,
 }
 
 #[binrw]

@@ -104,12 +104,12 @@ pub struct Logic {
     pub version: Version!(7, "LogicSystem"),
     pub uuid_generator: UuidGenerator,
     #[brw(assert(init.bool))]
-    pub init: Bool,
+    init: Bool,
     pub duration_between_ticks: Time,
     pub time_ticked: Time,
     pub time_passed: Time,
     pub trigger_sys: VersionedI!("TriggerSystem", Array<Trigger>),
-    pub tick: i32,
+    pub tick: u32,
 }
 
 #[binrw]

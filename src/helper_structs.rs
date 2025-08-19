@@ -485,6 +485,15 @@ impl<I: Ided> fmt::Debug for Ref<I> {
     }
 }
 
+impl<I: Ided> From<Uuid> for Ref<I> {
+    fn from(id: Uuid) -> Self {
+        Self {
+            id,
+            _marker: PhantomData,
+        }
+    }
+}
+
 #[binrw]
 pub struct OptRef<I: Ided> {
     version: Version!(0, "logic UniqueId"),
@@ -492,6 +501,30 @@ pub struct OptRef<I: Ided> {
     #[bw(map = |x| x.map(|i|i.into()).map(|i:NonMaxU64|i.get()).unwrap_or(u64::MAX))]
     pub id: Option<Uuid>,
     _marker: PhantomData<I>,
+}
+
+impl<I: Ided> Copy for OptRef<I> {}
+
+impl<I: Ided> Clone for OptRef<I> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<I: Ided> From<u64> for OptRef<I> {
+    fn from(value: u64) -> Self {
+        Self {
+            version: Default::default(),
+            id: NonMaxU64::try_from(value).map(|i| i.into()).ok(),
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<I: Ided> From<OptRef<I>> for u64 {
+    fn from(value: OptRef<I>) -> Self {
+        value.id.map(|i| i.id.get()).unwrap_or(u64::MAX)
+    }
 }
 
 trait Owner<I: Ided> {
@@ -623,9 +656,9 @@ impl Default for OptionalPatternCursor {
 #[derive(Default, PartialEq, Eq, Clone, Copy)]
 pub struct PatternCursor {
     version: Version!(0, "PatternCursor"),
-    #[br(assert(x < 1000))]
+    #[br(assert(x != u32::MAX))]
     pub x: u32,
-    #[br(assert(y < 1000))]
+    #[br(assert(y != u32::MAX))]
     pub y: u32,
 }
 
