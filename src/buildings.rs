@@ -16,9 +16,9 @@ use strum::EnumCount;
 #[derive(Debug)]
 pub struct Villages {
     version: VersionI!("VillageSystem"),
-    buildings: Array<Building>,
-    remains: Array<Remains>,
-    orders: Orders,
+    pub buildings: Array<Building>,
+    pub remains: Array<Remains>,
+    pub orders: Orders,
 }
 
 #[binrw]
@@ -32,8 +32,8 @@ pub struct Building {
     ticker: Ticker,
     depot: Depot,
     workers: Versioned!("VillageWorkers", Array<Ref<Worker>>),
-    deposit_ref: Ref<Deposit>,
-    animal_ref: Ref<Animal>,
+    deposit_ref: OptRef<Deposit>,
+    animal_ref: OptRef<Animal>,
     construction: Construction,
     production: Production,
     blocking: Blocking,
@@ -79,7 +79,7 @@ struct Depot {
     version: Version!("VillageDepot"),
     stock1: Stock,
     stock2: Stock,
-    needed_goods: Versioned!("Need Good System", Array<(Good, Ref<Package>)>),
+    needed_goods: Versioned!("Need Good System", Array<(Good, OptRef<Package>)>),
     returning_goods: Versioned!(0, "Returning Good System", Array<Ref<Package>>),
 }
 
@@ -89,7 +89,7 @@ struct Construction {
     version: Version!(2, "VillageConstruction"),
     progress: f32,
     progress_start_idk: f32,
-    settler_ref: Ref<Settler>,
+    settler_ref: OptRef<Settler>,
     stock: Stock,
     building_type: BuildingType,
 }
@@ -115,7 +115,7 @@ struct TerritoryUpdater {
 struct Bulldozing {
     version: Version!(1, "VillageBulldozing"),
     progress: f32,
-    settler_ref: Ref<Settler>,
+    settler_ref: OptRef<Settler>,
     direction: Direction,
     building_type: BuildingType,
 }
@@ -157,7 +157,7 @@ pub struct SettlersContainer {
 #[binrw]
 #[derive(Debug)]
 struct GoodFlags {
-    good: Good,
+    good: GoodOrSettler,
     lock: Bool,
     evict: Bool,
 }
@@ -245,14 +245,26 @@ struct Upgrade {
 
 #[binrw]
 #[derive(Debug)]
-struct Remains {
+pub struct Remains {
     remains_type: RemainsType, //maybe in wrong order
     building_type: BuildingType,
     version: VersionI!(1, "VillageRemains"),
     pos: PatternCursor,
-    someproperty: u32,
+    burning_time: u32,
     blocking: Blocking,
     idk: u32,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[repr(u32)]
+#[derive(Debug)]
+pub enum BuildingSize {
+    Small = 0,
+    Medium = 1,
+    Large = 2,
+    Mine = 3,
+    Harbor = 4,
 }
 
 #[binrw]
@@ -270,15 +282,16 @@ pub enum RemainsType {
 struct Blocking {
     version: VersionI!("Blocking"),
     pos: PatternCursor,
-    size: u32, //TODO
+    size: BuildingSize,
 }
 
 #[binrw]
 #[derive(Debug)]
-struct Orders {
+pub struct Orders {
     version: VersionI!(2, "Order System"),
-    orders: Array<Order>,
-    idk: i32, //TODO
+    pub orders: Array<Order>,
+    /// next order that will be ticked
+    order_tick_idx: u32,
 }
 
 #[binrw]
@@ -286,12 +299,12 @@ struct Orders {
 pub struct Order {
     version: Version!(3, "Village Order"),
     id: Uuid,
-    ordered: Good,
+    ordered: GoodOrSettler,
     used: Bool,
-    building_ref: Ref<Building>,
-    flag_ref: Ref<Flag>,
-    street_ref: Ref<Street>,
-    building_ref2: Ref<Building>,
+    building_ref: OptRef<Building>,
+    flag_ref: OptRef<Flag>,
+    street_ref: OptRef<Street>,
+    building_ref2: OptRef<Building>,
 }
 
 impl Ided for Order {

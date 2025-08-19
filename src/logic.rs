@@ -16,6 +16,7 @@ use crate::resources::Resources;
 use crate::settlers::Settlers;
 use crate::transport::Transport;
 use binrw::binrw;
+use nonmax::NonMaxU64;
 use strum::EnumCount;
 
 #[binrw]
@@ -61,7 +62,7 @@ pub struct GameFileLogic {
     pub settlers: Settlers,
     pub transport: Transport,
     pub military: Military,
-    pub navy: VersionedI!(2, "Navy System", Array<(PlayerId, Ship)>),
+    pub navy: VersionedI!(2, "Navy System", Array<Ship>),
     pub netsys: NetSys,
     #[brw(args(&players.data))]
     pub ai: Ai,
@@ -74,7 +75,7 @@ pub struct GameFileLogic {
 pub struct Stats {
     version: Version!("LogicStatistics"),
     idk: u32,
-    stats: Array<(Uuid, u32, f32, u32)>,
+    stats: Array<(Uuid, u32, f32, u32)>, //TODO idk
     player_stats: [PlayerStats; PlayerId::COUNT],
 }
 
@@ -113,12 +114,16 @@ pub struct Logic {
 
 #[binrw]
 #[derive(Debug)]
-pub struct UuidGenerator(i64);
+pub struct UuidGenerator {
+    #[br(try_map = |x:u64| x.try_into())]
+    #[bw(map = |x| x.get())]
+    state: NonMaxU64,
+}
 
 impl UuidGenerator {
     pub fn next_id(&mut self) -> Uuid {
-        let res = self.0.into();
-        self.0 += 1;
+        let res = self.state.into();
+        self.state = NonMaxU64::new(self.state.get() + 1).unwrap(); //unwrap_or_default()
         res
     }
 }

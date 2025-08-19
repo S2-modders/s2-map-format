@@ -86,7 +86,7 @@ struct StreetPath {
     idk3: i32,
     pos: OptionalPatternCursor,
     path: Array<PatternCursor>,
-    street_ref: Ref<Street>,
+    street_ref: OptRef<Street>,
     idk4: Bool,
     idk5: Bool,
 }

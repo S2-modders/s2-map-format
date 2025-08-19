@@ -45,8 +45,8 @@ struct LockSmith {
 #[derive(Debug)]
 struct GoodPriority {
     version: Version!("Good Priority"),
-    idk: u32,
-    idk2: u32,
+    good: GoodOrSettler,
+    transport_priority: u32,
 }
 
 #[binrw]
@@ -63,7 +63,7 @@ struct ArrangementObject {
     version: Version!("Player ArrangementObject"),
     percentage: f32,
     idk: f32,
-    obj_type: u32,
+    obj_type: BuildingType,
 }
 
 #[binrw]
@@ -97,7 +97,7 @@ struct Message {
 #[derive(Debug)]
 struct MsgId {
     version: Version!("uniqueId"),
-    id: u64,
+    id: u64, //TODO Nonmax
 }
 
 #[binrw]
@@ -105,5 +105,5 @@ struct MsgId {
 pub struct Stock {
     version: VersionI!("Stock"),
     idk: u32,
-    map: Array<(Good, u32)>,
+    map: Array<(GoodOrSettler, u32)>,
 }

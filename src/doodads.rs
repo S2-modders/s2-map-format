@@ -7,14 +7,14 @@ use binrw::binrw;
 #[derive(Debug)]
 pub struct Doodads {
     version: VersionI!("DoodadsSystem"),
-    map1: Array<Doodad>,
-    map2: Array<Doodad>,
-    map3: Array<Doodad>,
+    pub map1: Array<Doodad>,
+    pub map2: Array<Doodad>,
+    pub map3: Array<Doodad>,
 }
 
 #[binrw]
 #[derive(Debug)]
-struct Doodad {
+pub struct Doodad {
     doodad_type: DoodadType,
     version: Version!(1, "DoodadsObject"),
     id: Uuid,

@@ -9,28 +9,22 @@ use binrw::binrw;
 #[derive(Debug)]
 pub struct Transport {
     version: VersionI!("Transport System"),
-    packages: Packages,
-    package_needs: VersionedI!("Transport PackageNeedSystem", Array<PackageNeedTarget>),
-    building_needs: VersionedI!("Transport BuildingNeedSystem", Array<BuildingNeedGood>),
-}
-
-#[binrw]
-#[derive(Debug)]
-struct Packages {
-    version: VersionI!("Package System"),
-    package: Array<(PlayerId, Package)>,
+    pub packages: VersionedI!("Package System", Array<Package>),
+    pub package_needs: VersionedI!("Transport PackageNeedSystem", Array<PackageNeedTarget>),
+    pub building_needs: VersionedI!("Transport BuildingNeedSystem", Array<BuildingNeedGood>),
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct Package {
+    owner: PlayerId,
     version: Version!(1, "Transport Package"),
     id: Uuid,
     idk: Bool,
     idk1: Bool,
-    building_ref: Ref<Building>,
-    settler_ref: Ref<Settler>,
-    flag_ref: Ref<Flag>,
+    building_ref: OptRef<Building>,
+    settler_ref: OptRef<Settler>,
+    flag_ref: OptRef<Flag>,
     good: Good,
     pos: OptionalPatternCursor,
     idk2: Bool,
@@ -38,7 +32,7 @@ pub struct Package {
     idk4: u32,
     idk5: OptionalPatternCursor,
     idk6: OptionalPatternCursor,
-    id2: Uuid, //TODO what?
+    net_ref: OptRef<Flag>, //TODO what?
 }
 
 impl Ided for Package {
@@ -49,7 +43,7 @@ impl Ided for Package {
 
 #[binrw]
 #[derive(Debug)]
-struct PackageNeedTarget {
+pub struct PackageNeedTarget {
     version: Version!("Transport PackageNeedTarget"),
     package_ref: Ref<Package>,
     building_ref: Ref<Building>,
@@ -57,11 +51,11 @@ struct PackageNeedTarget {
 
 #[binrw]
 #[derive(Debug)]
-struct BuildingNeedGood {
+pub struct BuildingNeedGood {
     version: Version!(1, "Transport BuildingNeedGood"),
     building_ref: Ref<Building>,
     good: Good,
-    package_ref: Ref<Package>,
+    package_ref: OptRef<Package>,
     idk: u32,
-    building_ref2: Ref<Building>,
+    building_ref2: OptRef<Building>,
 }

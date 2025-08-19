@@ -1,10 +1,13 @@
+mod utils;
+
 use binrw::BinRead;
 use decryptor_s2::*;
+use itertools::Itertools;
 use simple_eyre::eyre::{OptionExt, Result};
 mod helper_structs;
 mod logic;
 mod map;
-use crate::logic::MapFile;
+use crate::{logic::MapFile, utils::get_all_uuids};
 mod ai;
 mod buildings;
 mod doodads;
@@ -29,22 +32,12 @@ fn main() -> Result<()> {
             );
             let reader = &mut std::io::Cursor::new(decompressed.data);
             let map = MapFile::read_le(reader)?;
-            // let print = &map.logic.mapinfo;
-            // println!("{print:?}");
-            let print = &map.logic.trigger_sys.data;
-            println!("{print:?}");
-            // let mut writer = std::io::Cursor::new(Vec::new());
-            // map.write_le(&mut writer)?;
-            // CompressedFile {
-            //     data: writer.into_inner(),
-            //     game: Game::Dng,
-            // }
-            // .write_args(&mut BufWriter::new(&mut File::open(s)?), (s,))?;
-            let remaining = &reader.get_ref()[reader.position() as usize..];
-            println!("remaining: {}", remaining.len());
-            println!("type: {:?}", map.mapinfo.file_type);
-            println!("{:?}/{:?}", reader.position(), reader.get_ref().len());
-            println!("remaining bytes (50): {:?}", &remaining[..50]);
+            let get_all_uuids = get_all_uuids(&map);
+            let dups = get_all_uuids
+                .iter()
+                .duplicates_by(|i| i.0.id)
+                .collect::<Vec<_>>();
+            dbg!(dups);
             Ok(())
         })?;
     Ok(())

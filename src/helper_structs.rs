@@ -2,6 +2,7 @@ use binrw::{BinRead, BinResult, BinWrite, binrw};
 use bounded_integer::BoundedU32;
 use derive_more::IsVariant;
 use grid::Grid;
+use nonmax::NonMaxU64;
 use std::{fmt, marker::PhantomData, time::Duration};
 use strum::*;
 
@@ -174,7 +175,7 @@ where
 #[binrw]
 #[brw(repr = u32)]
 #[repr(u32)]
-#[derive(Debug, EnumCount, FromRepr, PartialEq, Eq)]
+#[derive(Debug, EnumCount, FromRepr, PartialEq, Eq, Clone, Copy)]
 pub enum PlayerId {
     P0 = 0,
     P1 = 1,
@@ -190,23 +191,22 @@ pub enum PlayerId {
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Uuid {
     version: Version!(0, "logic UniqueId"),
-    id: i64,
+    #[br(try_map = |x:u64| x.try_into())]
+    #[bw(map = |x| x.get())]
+    pub id: NonMaxU64,
 }
 
-impl From<i64> for Uuid {
-    fn from(id: i64) -> Self {
-        Self {
-            id,
-            ..Default::default()
-        }
+impl From<Uuid> for NonMaxU64 {
+    fn from(val: Uuid) -> Self {
+        val.id
     }
 }
 
-impl Default for Uuid {
-    fn default() -> Self {
+impl From<NonMaxU64> for Uuid {
+    fn from(id: NonMaxU64) -> Self {
         Self {
+            id,
             version: Default::default(),
-            id: -1,
         }
     }
 }
@@ -259,7 +259,13 @@ pub enum Good {
     DonkeyItem = 0x2448356e,
     Weapons = 0x0897d1e3,
     Ship = 0x1d66b4ae,
+}
 
+#[binrw]
+#[brw(repr = u32)]
+#[repr(u32)]
+#[derive(Debug)]
+pub enum SettlerType {
     Constructor = 0xdd2daebe,
     Bulldozer = 0x2740000e,
     Woodcutter = 0x2c50533e,
@@ -291,6 +297,14 @@ pub enum Good {
     ShipBuilder = 0xae71fbf3,
     Slaughter = 0xf0622d7e,
     ShipHelper = 0x182118d3,
+}
+
+#[binrw]
+#[repr(u32)]
+#[derive(Debug)]
+pub enum GoodOrSettler {
+    Good(Good),
+    Settler(SettlerType),
 }
 
 #[binrw]
@@ -408,6 +422,24 @@ pub struct Version<const MAX_VER: u32, const CRC: u32, const LEN: u32> {
 }
 
 #[binrw]
+pub struct Idx<I: Ided> {
+    idx: u32,
+    _marker: PhantomData<I>,
+}
+
+impl<I: Ided> Idx<I> {
+    fn resolve<'a, O: Owner<I>>(&self, owner: &'a O) -> Option<&'a I> {
+        owner.get().get(self.idx as usize)
+    }
+}
+
+impl<I: Ided> fmt::Debug for Idx<I> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.idx.fmt(f)
+    }
+}
+
+#[binrw]
 pub struct Ref<I: Ided> {
     id: Uuid,
     _marker: PhantomData<I>,
@@ -419,22 +451,49 @@ impl<I: Ided> fmt::Debug for Ref<I> {
     }
 }
 
-impl<I: Ided> Default for Ref<I> {
+#[binrw]
+pub struct OptRef<I: Ided> {
+    version: Version!(0, "logic UniqueId"),
+    #[br(map = |x: u64| NonMaxU64::try_from(x).ok().map(|i|i.into()))]
+    #[bw(map = |x| x.map(|i|i.into()).map(|i:NonMaxU64|i.get()).unwrap_or(u64::MAX))]
+    id: Option<Uuid>,
+    _marker: PhantomData<I>,
+}
+
+trait Owner<I: Ided> {
+    fn get(&self) -> &[I];
+}
+
+impl<I: Ided> fmt::Debug for OptRef<I> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.id.fmt(f)
+    }
+}
+
+impl<I: Ided> Ref<I> {
+    pub fn get<'a>(&self, provider: &'a [I]) -> Option<&'a I> {
+        provider.iter().find(|b| self.id == b.id())
+    }
+}
+
+impl<I: Ided> Default for OptRef<I> {
     fn default() -> Self {
         Self {
+            version: Default::default(),
             id: Default::default(),
             _marker: Default::default(),
         }
     }
 }
 
-impl<I: Ided> Ref<I> {
-    fn get<'a>(&self, provider: &'a [I]) -> Option<&'a I> {
-        provider.iter().find(|b| self.id == b.id())
+impl<I: Ided> OptRef<I> {
+    pub fn get<'a>(&self, provider: &'a [I]) -> Option<&'a I> {
+        self.id
+            .and_then(|id| provider.iter().find(|b| id == b.id()))
     }
 }
 
-pub trait Ided {
+pub trait Ided: 'static {
     fn id(&self) -> Uuid;
 }
 
@@ -462,9 +521,7 @@ impl<const CAP: u32> CapedU32<CAP> {
 
 #[binrw]
 pub struct CoreUuid {
-    version: VersionI!(0, "Core UUID"),
-    // #[brw(assert(init.bool))]
-    // init: Bool,
+    version: VersionI!("Core UUID"),
     id: u128,
 }
 
@@ -575,9 +632,14 @@ pub struct Dimensions {
 
 #[binrw]
 #[derive(Debug)]
-pub struct MapIdxPos {
+pub struct MapIdxPos<T, M: Positioned<T>> {
     x: u32,
     y: u32,
+    _marker: PhantomData<(T, M)>,
+}
+
+pub trait Positioned<T> {
+    fn at(&self, x: usize, y: usize) -> &T;
 }
 
 #[binrw]

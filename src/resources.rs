@@ -1,4 +1,5 @@
 use crate::VersionI;
+use crate::ai::{ResourceMapElement, SmallResourceMap};
 use crate::buildings::Building;
 use crate::movement::AnimalMovement;
 use crate::{Version, helper_structs::*};
@@ -8,20 +9,20 @@ use binrw::binrw;
 #[derive(Debug)]
 pub struct Resources {
     version: VersionI!(4, "resources"),
-    deposits: Array<Deposit>,
-    animals: Array<Animal>,
-    respawn: AnimalRespawn,
+    pub deposits: Array<Deposit>,
+    pub animals: Array<Animal>,
+    pub respawn: AnimalRespawn,
     idk: u32,
     idk2: u32,
 }
 
 #[binrw]
 #[derive(Debug)]
-struct AnimalRespawn {
+pub struct AnimalRespawn {
     version: VersionI!("Resources AnimalRespawn"),
     tick: CapedU32<999>,
     tick_increment: u32,
-    pos: MapIdxPos,
+    pos: MapIdxPos<ResourceMapElement, SmallResourceMap>,
 }
 
 #[binrw]
@@ -31,7 +32,7 @@ pub struct Deposit {
     version: Version!(1, "deposit"),
     id: Uuid,
     pos: PatternCursor,
-    buildingref: Ref<Building>,
+    buildingref: OptRef<Building>,
     pos2: ElevationCursor,
     current_grouth: f32,
     age: u32,
@@ -92,7 +93,7 @@ pub struct Animal {
     movement: AnimalMovement,
     idk1: u32, // 2 = is interpolating movement
     idk2: u32,
-    villagebuildingref: Ref<Building>,
+    buildingref: OptRef<Building>,
 }
 
 impl Ided for Animal {

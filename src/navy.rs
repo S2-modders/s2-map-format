@@ -7,6 +7,7 @@ use binrw::binrw;
 #[binrw]
 #[derive(Debug)]
 pub struct Ship {
+    owner: PlayerId,
     version: Version!(3, "Navy Ship"),
     id: Uuid,
     construction: Construction,

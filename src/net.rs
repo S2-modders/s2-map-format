@@ -3,7 +3,6 @@ use crate::VersionI;
 use crate::Versioned;
 use crate::VersionedI;
 use crate::buildings::Order;
-
 use crate::helper_structs::*;
 use crate::{
     buildings::{Building, SettlersContainer},
@@ -17,20 +16,23 @@ use strum::EnumCount;
 #[derive(Debug)]
 pub struct NetSys {
     version: VersionI!(1, "Net System"),
-    flags: Array<(PlayerId, Flag)>,
-    streets: Array<Street>,
-    idk: [[Array<Idk>; 3]; PlayerId::COUNT],
+    pub flags: Array<Flag>,
+    pub streets: Array<Street>,
+    pub net_graph: [[SerializedGraph; NetType::COUNT]; PlayerId::COUNT],
 }
+
+pub type SerializedGraph = Array<(Ref<Flag>, Array<(Ref<Flag>, u32)>)>;
 
 #[binrw]
 #[derive(Debug)]
 pub struct Flag {
-    version: Version!(1, "Flag"), //TODO: idk why
-    building_ref: Ref<Building>,
+    owner: PlayerId,
+    version: Version!(1, "Flag"),
+    building_ref: OptRef<Building>,
     id: Uuid,
     pos: PatternCursor,
     links: Array<Versioned!("Net FlagLink", Ref<Flag>, Ref<Street>)>,
-    idk: [Uuid; 3],
+    idk: [Ref<Flag>; NetType::COUNT],
     packages: VersionedI!("Package Container", Array<Ref<Package>>),
     specialist: Versioned!("Net Specialist", SettlersContainer),
     orders: Versioned!("Order Container", Array<Ref<Order>>),
@@ -54,8 +56,8 @@ pub struct Street {
     segments: u32,
     start: Ref<Flag>,
     end: Ref<Flag>,
-    carrier0: Ref<Carrier>,
-    carrier1: Ref<Carrier>,
+    carrier0: OptRef<Carrier>,
+    carrier1: OptRef<Carrier>,
     map_updater: Version!("Net Street Map Updater"),
     orders: Versioned!("Order Container", Array<Ref<Order>>),
     transported_good_count: u32,
@@ -75,5 +77,11 @@ impl Ided for Street {
 }
 
 #[binrw]
-#[derive(Debug)]
-struct Idk(Uuid, Array<(Uuid, u32)>);
+#[brw(repr = u32)]
+#[repr(u32)]
+#[derive(Debug, EnumCount)]
+pub enum NetType {
+    Ship = 0,
+    Transport = 1, //Ware
+    Seltter = 2,
+}

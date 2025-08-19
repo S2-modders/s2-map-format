@@ -4,6 +4,7 @@ use crate::Versioned;
 use crate::VersionedI;
 use crate::buildings::Building;
 use crate::helper_structs::*;
+use crate::net::Flag;
 use crate::player::Player;
 use binrw::binrw;
 use binrw::helpers::args_iter;
@@ -15,8 +16,8 @@ pub struct Ai {
     version: Version!(2, "AI System"),
     init: Bool,
     #[br(parse_with = args_iter(players.iter().map(|o|o.as_ref())))]
-    ai_players: Vec<AiPlayer>,
-    tick: u32,
+    pub ai_players: Vec<AiPlayer>,
+    tick: u32, //TODO
     resource_map: ResourceMap,
     small_resource_map: SmallResourceMap,
     should_tick: Bool,
@@ -25,19 +26,19 @@ pub struct Ai {
 #[binrw]
 #[derive(Debug)]
 #[brw(import_raw(player: Option<&Player>))]
-struct AiPlayer {
+pub struct AiPlayer {
     version: Version!(6, "AI Player"),
     init: Bool,
-    ai_type: Option<AiType>,
+    pub ai_type: Option<AiType>,
     #[brw(if(init.bool))]
-    initialized_ai_player: Option<InitAiPlayer>,
+    pub initialized_ai_player: Option<InitAiPlayer>,
     #[brw(if(player.is_some_and(|p|p.init.bool)))]
-    military_map: Option<MilitaryMap>,
+    pub military_map: Option<MilitaryMap>,
 }
 
 #[binrw]
 #[derive(Debug)]
-struct InitAiPlayer {
+pub struct InitAiPlayer {
     headquarters: PatternCursor,
     construction: Construction,
     needs_arrangement: VersionedI!("AI NeedsArrangement", ExpansionTarget),
@@ -49,12 +50,12 @@ struct InitAiPlayer {
         Array<SmallResourceMapAddsElement>
     ),
 
-    buildings: Array<AiBuilding>,
-    general_needs: Array<Need>,
-    food_needs: Array<Need>,
-    productions: Array<Production>,
-    territory_map: TerritoryMap,
-    cells: Cells,
+    pub buildings: Array<AiBuilding>,
+    pub general_needs: Array<Need>,
+    pub food_needs: Array<Need>,
+    pub productions: Array<Production>,
+    territory_map: VersionedI!("Ai TerritoryMap", Map<TerritoryMapElement>),
+    pub cells: Cells,
     expansion: Expansion,
     military: AiMilitary,
     resources: AiResources,
@@ -63,8 +64,14 @@ struct InitAiPlayer {
     lock_smith: LockSmith,
     food_arrangement: VersionI!("AI FoodArrangement"),
     goods_arrangement: VersionedI!("AI GoodsArrangement", GoodsArrangementStage),
-    production_control: VersionedI!("AI ProductionControl", Good),
+    production_control: VersionedI!("AI ProductionControl", GoodOrSettler),
     conquered_continents: VersionedI!("Ai ConqueredContinents", Array<u32>),
+}
+
+impl Positioned<TerritoryMapElement> for Map<TerritoryMapElement> {
+    fn at(&self, x: usize, y: usize) -> &TerritoryMapElement {
+        &self.grid[(x, y)]
+    }
 }
 
 #[binrw]
@@ -97,8 +104,8 @@ enum GoodsArrangementStage {
 #[derive(Debug)]
 struct LockSmith {
     version: VersionI!(1, "AI LockSmith"),
-    tool_need_ref: Ref<Need>,
-    last_tool_produced: Option<Good>,
+    tool_need_ref: OptRef<Need>,
+    last_tool_produced: Good,
 }
 
 #[binrw]
@@ -127,7 +134,7 @@ enum NeedCreationState {
 #[derive(Debug)]
 struct Destruction {
     version: VersionI!(2, "Ai DestructionSystem"),
-    curr_flag_idx: u32,
+    curr_flag_idx: Idx<Flag>,
     some_ref: u64,
 }
 
@@ -160,7 +167,7 @@ struct AiMilitary {
 #[derive(Debug)]
 struct MilitaryUpgrade {
     version: VersionI!(1, "AI MilitaryUpgrade"),
-    curr_military_building_idx: u32,
+    curr_military_building_idx: Idx<Building>,
 }
 
 #[binrw]
@@ -183,9 +190,9 @@ struct WeaponProduction {
 #[derive(Debug)]
 struct CatapultConstruction {
     version: VersionI!("AI CatapultConstruction"),
-    curr_pos: MapIdxPos,
+    curr_pos: MapIdxPos<TerritoryMapElement, Map<TerritoryMapElement>>,
     best_score: f32,
-    best_pos: MapIdxPos,
+    best_pos: MapIdxPos<TerritoryMapElement, Map<TerritoryMapElement>>,
     max_iterations: i32,
     order: ConstructionOrder,
 }
@@ -196,14 +203,14 @@ struct AttackSystem {
     version: VersionI!(1, "Ai AttackSystem"),
     target_selection: VersionedI!("Ai AttackTargetSelection", AttackTarget),
     attack_execution: AttackExecution,
-    allowed_attack_count: u32,
+    allowed_attack_count: Optional<u32>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct AttackTarget {
     version: Version!("Ai AttackTarget"),
-    target_pos: MapIdxPos,
+    target_pos: MapIdxPos<TerritoryMapElement, Map<TerritoryMapElement>>, //also useable for militarymap
     distance: u32,
     score: u32,
     target_owner: Optional<PlayerId>,
@@ -257,30 +264,40 @@ enum ExpansionRequestType {
 
 #[binrw]
 #[derive(Debug)]
-struct Cells {
+pub struct Cells {
     version: VersionI!(3, "Ai CellSystem"),
     cell_depot_creation: VersionedI!("Ai CellDepotCreation", ConstructionOrder),
     cell_expansion: VersionedI!("Ai CellExpansion", ExpansionTarget),
-    cells: Array<Cell>,
+    pub cells: Array<Cell>,
     cell_validator: Option<CellValidator>,
     cell_clearing: Option<CellClearing>,
     harbor_creation: Option<HarborCreation>,
+}
+
+impl Positioned<Cell> for Cells {
+    fn at(&self, x: usize, y: usize) -> &Cell {
+        self.cells
+            .array
+            .iter()
+            .find(|c| x as u32 & !0xf == c.pos.x && y as u32 & !0xf == c.pos.y)
+            .unwrap() //TODO
+    }
 }
 
 #[binrw]
 #[derive(Debug)]
 struct CellValidator {
     version: VersionI!("AI CellValidator"),
-    start: MapIdxPos,
-    end: MapIdxPos,
+    start: MapIdxPos<Cell, Cells>,
+    end: MapIdxPos<Cell, Cells>,
 }
 
 #[binrw]
 #[derive(Debug)]
 struct CellClearing {
     version: VersionI!("AI CellClearing"),
-    start: MapIdxPos,
-    end: MapIdxPos,
+    start: MapIdxPos<Cell, Cells>,
+    end: MapIdxPos<Cell, Cells>,
     order: ConstructionOrder,
 }
 
@@ -294,10 +311,10 @@ struct HarborCreation {
 
 #[binrw]
 #[derive(Debug)]
-struct Cell {
+pub struct Cell {
     version: VersionI!(5, "Ai Cell"),
     id: Uuid,
-    cell_idx_pos: MapIdxPos,
+    cell_idx_pos: MapIdxPos<Cell, Cells>,
     pos: PatternCursor,
     depots: Versioned!("Ai ReferncesBuilding", Array<Ref<AiBuilding>>),
     civil_buildings: Versioned!("Ai ReferncesBuilding", Array<Ref<AiBuilding>>),
@@ -309,11 +326,11 @@ struct Cell {
     cell_full: VersionedI!("AI CellFull", Array<CellFullElement>),
     destruction_site: CellConstruction,
     destruction_size: u32,
-    aibuilding_ref: Ref<AiBuilding>,
+    aibuilding_ref: OptRef<AiBuilding>,
     harbors: Versioned!("Ai ReferncesBuilding", Array<Ref<AiBuilding>>),
     continent_id: u32,
     idk: CellConstruction,
-    aibuilding_ref2: Ref<AiBuilding>,
+    aibuilding_ref2: OptRef<AiBuilding>,
 }
 
 impl Ided for Cell {
@@ -342,19 +359,9 @@ struct CellConstruction {
 
 #[binrw]
 #[derive(Debug)]
-struct TerritoryMap {
-    version: VersionI!("Ai TerritoryMap"),
-    width: u32,
-    height: u32,
-    #[br(count = width * height)]
-    elements: Vec<TerritoryMapElement>,
-}
-
-#[binrw]
-#[derive(Debug)]
 struct TerritoryMapElement {
     version: Version!(2, "AI TerritoryMap Element"),
-    id: Uuid,
+    cell_ref: OptRef<Cell>,
     idk: i32,
     attack_fc: i32,
     catapults_constructioned: i32,
@@ -363,13 +370,13 @@ struct TerritoryMapElement {
 
 #[binrw]
 #[derive(Debug)]
-struct Production {
+pub struct Production {
     version: VersionI!("Ai Production"),
     id: Uuid,
     product: Good,
     cell_ref: Ref<Cell>,
     need_ref: Ref<Need>,
-    aibuilding_ref: Ref<AiBuilding>,
+    aibuilding_ref: OptRef<AiBuilding>,
 }
 
 impl Ided for Production {
@@ -380,17 +387,17 @@ impl Ided for Production {
 
 #[binrw]
 #[derive(Debug)]
-struct Need {
+pub struct Need {
     version: VersionI!("Ai Need"),
     id: Uuid,
     need_type: Good,
-    cell_ref: Ref<Cell>,
-    production_ref: Ref<Production>,
-    aibuilding_ref: Ref<AiBuilding>,
-    pos_resource_element_adds: MapIdxPos,
+    cell_ref: OptRef<Cell>,
+    production_ref: OptRef<Production>,
+    aibuilding_ref: OptRef<AiBuilding>,
+    pos_resource_element_adds: MapIdxPos<Vec<ResourceMapElement>, ResourceMap>,
     is_in_resource_system: Bool,
-    child: Ref<Need>,
-    parent: Ref<Need>,
+    child: OptRef<Need>,
+    parent: OptRef<Need>,
 }
 
 impl Ided for Need {
@@ -401,9 +408,9 @@ impl Ided for Need {
 
 #[binrw]
 #[derive(Debug)]
-struct AiBuilding {
+pub struct AiBuilding {
     version: VersionI!(1, "Ai Building"), //TODO: why?
-    id: Uuid,
+    id: Uuid,                             //TODO same as Building Uuid
     building_ref: Ref<Building>,
     cell_ref: Ref<Cell>,
     need_refs: Versioned!("Ai ReferncesNeed", Array<Ref<Need>>),
@@ -427,7 +434,7 @@ struct SmallResourceMapAddsElement {
 #[derive(Debug)]
 struct ResourceMapAddsElement {
     version: Version!("Ai ResourceMapAddsElement"),
-    need: Ref<Need>,
+    need: OptRef<Need>,
     idk: Bool,
 }
 
@@ -436,7 +443,7 @@ struct ResourceMapAddsElement {
 struct NeedsConstruction {
     version: VersionI!("AI NeedsConstruction"),
     order: ConstructionOrder,
-    need: Ref<Need>,
+    need: OptRef<Need>,
 }
 
 #[binrw]
@@ -497,7 +504,7 @@ struct StreetConstruction {
     target_flag: u64, //Flag ref
     idk: u32,
     tried_flag_poses: Array<PatternCursor>,
-    idk2: Array<(u32, Uuid)>,
+    idk2: Array<(u32, Ref<Flag>)>, //TODO idk
     idk3: OptionalPatternCursor,
     idk4: u32,
     idk5: u32,
@@ -538,7 +545,7 @@ struct StreetRouteOptimizer {
 struct ShipConstruction {
     version: VersionI!("AI ShipConstruction"),
     order: ConstructionOrder,
-    aibuilding_ref: Ref<AiBuilding>, //TODO
+    aibuilding_ref: OptRef<AiBuilding>, //TODO
 }
 
 #[binrw]
@@ -578,7 +585,7 @@ enum ConstructionState {
 struct ConstructionOrder {
     version: Version!("Ai ConstructionOrder"),
     idk: u32,
-    curr_tick_pos: MapIdxPos,
+    curr_tick_pos: MapIdxPos<Cell, Cells>,
     pos: OptionalPatternCursor,
     idk2: u32,
     building_type: BuildingType,
@@ -617,31 +624,37 @@ struct CellPositionIterator {
 
 #[binrw]
 #[derive(Debug)]
-struct MilitaryMap {
+pub struct MilitaryMap {
     version: VersionI!("Ai Military Map"),
-    width: u32,
-    height: u32,
-    #[br(count = width * height)]
-    elements: Vec<MilitaryMapElement>,
-    curr_tick_pos: MapIdxPos,
+    map: Map<MilitaryMapElement>,
+    curr_tick_pos: MapIdxPos<MilitaryMapElement, MilitaryMap>,
+}
+
+impl Positioned<MilitaryMapElement> for MilitaryMap {
+    fn at(&self, x: usize, y: usize) -> &MilitaryMapElement {
+        &self.map.grid[(x, y)]
+    }
 }
 
 #[binrw]
 #[derive(Debug)]
 struct ResourceMap {
     version: VersionI!(1, "Ai ResourceMap"), //TODO why not 0?
-    width: u32,
-    height: u32,
-    #[br(count = width * height)]
-    element_vecs: Vec<Versioned!("AI ResourceMapElements", Array<ResourceMapElement>)>,
-    tick_pos: MapIdxPos,
-    tick_pos2: MapIdxPos,
+    map: Map<Versioned!("AI ResourceMapElements", Array<ResourceMapElement>)>,
+    tick_pos: MapIdxPos<Vec<ResourceMapElement>, ResourceMap>,
+    tick_pos2: MapIdxPos<Vec<ResourceMapElement>, ResourceMap>,
     len: u32,
+}
+
+impl Positioned<Vec<ResourceMapElement>> for ResourceMap {
+    fn at(&self, x: usize, y: usize) -> &Vec<ResourceMapElement> {
+        &self.map.grid[(x, y)].data.array
+    }
 }
 
 #[binrw]
 #[derive(Debug)]
-struct ResourceMapElement {
+pub struct ResourceMapElement {
     version: Version!("AI ResourceMapElement"),
     good: Good,
     pattern_type: u32, //idk
@@ -651,13 +664,19 @@ struct ResourceMapElement {
 
 #[binrw]
 #[derive(Debug)]
-struct SmallResourceMap {
+pub struct SmallResourceMap {
     version: VersionI!("Ai LowResResourceMap"),
     width: u32,
     height: u32,
     #[br(count = width * height)]
     element_vecs: Vec<Versioned!("AI ResourceMapElements", Array<ResourceMapElement>)>,
-    curr_tick_pos: MapIdxPos,
+    curr_tick_pos: MapIdxPos<ResourceMapElement, SmallResourceMap>,
+}
+
+impl Positioned<ResourceMapElement> for SmallResourceMap {
+    fn at(&self, x: usize, y: usize) -> &ResourceMapElement {
+        &self.element_vecs[x].data.array[y]
+    }
 }
 
 #[binrw]
