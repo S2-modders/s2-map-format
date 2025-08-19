@@ -22,7 +22,7 @@ pub struct AnimalRespawn {
     version: VersionI!("Resources AnimalRespawn"),
     tick: CapedU32<999>,
     tick_increment: u32,
-    pos: MapIdxPos<ResourceMapElement, SmallResourceMap>,
+    pos: MapIdxPos<Vec<ResourceMapElement>, SmallResourceMap>,
 }
 
 #[binrw]

@@ -32,7 +32,7 @@ pub struct Package {
     idk4: u32,
     idk5: OptionalPatternCursor,
     idk6: OptionalPatternCursor,
-    net_ref: OptRef<Flag>, //TODO what?
+    pub net_ref: OptRef<Flag>, //TODO what?
 }
 
 impl Ided for Package {

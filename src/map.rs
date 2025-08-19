@@ -16,7 +16,7 @@ pub struct MapSys {
     elevations: Map<i32>,
     pattern_map: VersionedI!("PatternMap", Array<PatternType>),
     gird_state_map: VersionedI!("GridStatesMap", Array<GridStates>),
-    resource_map: VersionedI!("Map Resources", Map<(u32, Good)>),
+    resource_map: VersionedI!("Map Resources", Map<(CapedU32<7>, Optional<Good>)>),
     territory_map: VersionedI!("Map Territory", Map<Optional<PlayerId>>),
     exploration_map: VersionedI!(1, "Map Exploration", PlayerMap<Bool>),
     continent_version: VersionI!(1, "Map Continents"),

@@ -29,7 +29,7 @@ pub struct Ai {
 pub struct AiPlayer {
     version: Version!(6, "AI Player"),
     init: Bool,
-    pub ai_type: Option<AiType>,
+    pub ai_type: Optional<AiType>,
     #[brw(if(init.bool))]
     pub initialized_ai_player: Option<InitAiPlayer>,
     #[brw(if(player.is_some_and(|p|p.init.bool)))]
@@ -78,7 +78,6 @@ impl Positioned<TerritoryMapElement> for Map<TerritoryMapElement> {
 #[brw(repr = u32)]
 #[derive(Debug)]
 pub enum AiType {
-    None = -1,
     Weak = 1,
     Normal = 2,
     Strong = 3,
@@ -105,7 +104,7 @@ enum GoodsArrangementStage {
 struct LockSmith {
     version: VersionI!(1, "AI LockSmith"),
     tool_need_ref: OptRef<Need>,
-    last_tool_produced: Good,
+    last_tool_produced: Optional<Good>,
 }
 
 #[binrw]
@@ -144,7 +143,7 @@ struct AiResources {
     version: VersionI!("Ai ResourceSystem"),
     needs: Versioned!("Ai ReferncesNeed", Array<Ref<Need>>),
     expansion_target: ExpansionTarget,
-    need: Good,
+    need: Optional<Good>,
 }
 
 #[binrw]
@@ -588,7 +587,7 @@ struct ConstructionOrder {
     curr_tick_pos: MapIdxPos<Cell, Cells>,
     pos: OptionalPatternCursor,
     idk2: u32,
-    building_type: BuildingType,
+    building_type: Optional<BuildingType>,
     priority: u32,
     ticked_seconds: Time,
 }
@@ -597,7 +596,7 @@ struct ConstructionOrder {
 #[derive(Debug)]
 struct SearchConstructionPlace {
     version: Version!("AI SearchConstructionPlace"),
-    building_type: BuildingType,
+    building_type: Optional<BuildingType>,
     found: Bool,
     pos_iterator: CellPositionIterator,
     max_iterations: i32,
@@ -666,16 +665,13 @@ pub struct ResourceMapElement {
 #[derive(Debug)]
 pub struct SmallResourceMap {
     version: VersionI!("Ai LowResResourceMap"),
-    width: u32,
-    height: u32,
-    #[br(count = width * height)]
-    element_vecs: Vec<Versioned!("AI ResourceMapElements", Array<ResourceMapElement>)>,
-    curr_tick_pos: MapIdxPos<ResourceMapElement, SmallResourceMap>,
+    map: Map<Versioned!("AI ResourceMapElements", Array<ResourceMapElement>)>,
+    curr_tick_pos: MapIdxPos<Vec<ResourceMapElement>, SmallResourceMap>,
 }
 
-impl Positioned<ResourceMapElement> for SmallResourceMap {
-    fn at(&self, x: usize, y: usize) -> &ResourceMapElement {
-        &self.element_vecs[x].data.array[y]
+impl Positioned<Vec<ResourceMapElement>> for SmallResourceMap {
+    fn at(&self, x: usize, y: usize) -> &Vec<ResourceMapElement> {
+        &self.map.grid[(x, y)].data.array
     }
 }
 

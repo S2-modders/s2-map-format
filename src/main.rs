@@ -1,13 +1,17 @@
 mod utils;
 
+use std::collections::HashMap;
+
 use binrw::BinRead;
 use decryptor_s2::*;
-use itertools::Itertools;
 use simple_eyre::eyre::{OptionExt, Result};
 mod helper_structs;
 mod logic;
 mod map;
-use crate::{logic::MapFile, utils::get_all_uuids};
+use crate::{
+    logic::MapFile,
+    utils::{ObjRef, get_all_uuids},
+};
 mod ai;
 mod buildings;
 mod doodads;
@@ -33,11 +37,23 @@ fn main() -> Result<()> {
             let reader = &mut std::io::Cursor::new(decompressed.data);
             let map = MapFile::read_le(reader)?;
             let get_all_uuids = get_all_uuids(&map);
-            let dups = get_all_uuids
+            let idmap: HashMap<u64, &ObjRef<'_>> =
+                get_all_uuids.iter().map(|(a, b)| (a.id.get(), b)).collect();
+
+            for pack in map
+                .save_file_info
+                .as_ref()
+                .unwrap()
+                .netsys
+                .net_graph
                 .iter()
-                .duplicates_by(|i| i.0.id)
-                .collect::<Vec<_>>();
-            dbg!(dups);
+                .flat_map(|a| a.iter())
+                .flat_map(|a| a.array.iter())
+                .flat_map(|a| a.1.array.iter())
+                .map(|pack| pack.0.id)
+            {
+                dbg!(matches!(idmap.get(&pack.id.get()), Some(ObjRef::Flag(_))));
+            }
             Ok(())
         })?;
     Ok(())

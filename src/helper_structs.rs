@@ -138,6 +138,42 @@ pub enum Direction {
 
 #[binrw]
 #[derive(Debug, Default, EnumCount, PartialEq, Eq, IsVariant)]
+pub enum OptNone<T>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug,
+{
+    #[default]
+    #[brw(magic = 0u32)]
+    None,
+    Some(T),
+}
+
+impl<T> OptNone<T>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug,
+{
+    pub const fn as_ref(&self) -> Option<&T> {
+        match *self {
+            OptNone::Some(ref x) => Some(x),
+            OptNone::None => None,
+        }
+    }
+}
+
+impl<T> From<OptNone<T>> for Option<T>
+where
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug,
+{
+    fn from(val: OptNone<T>) -> Self {
+        match val {
+            OptNone::None => None,
+            OptNone::Some(t) => Some(t),
+        }
+    }
+}
+
+#[binrw]
+#[derive(Debug, Default, EnumCount, PartialEq, Eq, IsVariant)]
 pub enum Optional<T>
 where
     for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + std::fmt::Debug,
@@ -222,7 +258,6 @@ impl fmt::Debug for Uuid {
 #[repr(u32)]
 #[derive(Debug)]
 pub enum Good {
-    None = u32::MAX, //TODO remove
     Food = 0x65cd3afe,
     Tools = 0xd5aa9bde,
     Wood = 0xcd6ec133,
@@ -312,7 +347,6 @@ pub enum GoodOrSettler {
 #[repr(u32)]
 #[derive(Debug)]
 pub enum BuildingType {
-    Empty = u32::MAX, //TODO: requered for Ai constructon order
     Castle = 0xf6e26cb3,
     WoodCutter = 0x5a926fa3,
     Forester = 0x3ff43d23,
@@ -441,7 +475,7 @@ impl<I: Ided> fmt::Debug for Idx<I> {
 
 #[binrw]
 pub struct Ref<I: Ided> {
-    id: Uuid,
+    pub id: Uuid,
     _marker: PhantomData<I>,
 }
 
@@ -456,7 +490,7 @@ pub struct OptRef<I: Ided> {
     version: Version!(0, "logic UniqueId"),
     #[br(map = |x: u64| NonMaxU64::try_from(x).ok().map(|i|i.into()))]
     #[bw(map = |x| x.map(|i|i.into()).map(|i:NonMaxU64|i.get()).unwrap_or(u64::MAX))]
-    id: Option<Uuid>,
+    pub id: Option<Uuid>,
     _marker: PhantomData<I>,
 }
 
@@ -550,6 +584,7 @@ impl Default for OptionalElevationCursor {
 }
 
 #[binrw]
+#[derive(Clone, Copy)]
 pub struct ElevationCursor {
     version: Version!(0, "ElevationCursor"),
     #[br(assert(x != u32::MAX))]
@@ -621,13 +656,6 @@ impl fmt::Debug for Time {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.duration.fmt(f)
     }
-}
-
-#[binrw]
-#[derive(Debug)]
-pub struct Dimensions {
-    width: u32,
-    height: u32,
 }
 
 #[binrw]

@@ -134,10 +134,10 @@ pub struct MapInfo {
     pub version: Version!(9, "MapInfo"),
     pub start_positions: Array<PatternCursor>,
     pub map_name: Str,
-    pub dimensions: Dimensions,
+    pub dimensions: (u32, u32),
     pub player_types: [PlayerType; PlayerId::COUNT],
     pub idk3: [(u32, PlayerId, i32, u32); PlayerId::COUNT],
-    pub mission_target_type: MissionTarget,
+    pub mission_target_type: OptNone<MissionTarget>,
     pub idk4: u32,
     pub file_type: FileType,
     pub id: CoreUuid,
@@ -167,10 +167,8 @@ pub enum FileType {
 
 #[binrw]
 #[brw(repr = u32)]
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub enum MissionTarget {
-    #[default]
-    None = 0,
     DestroyAllEnemies = 1,
     ConquerTheMap = 2,
     ProduceCoins = 3,
@@ -187,7 +185,7 @@ pub struct Trigger {
     idk: u32,
     active: Bool,
     name: Str,
-    player_id: PlayerId,
+    owner: PlayerId,
     time: Time,
 }
 
@@ -213,7 +211,7 @@ impl Trigger {
         pos: (u32, u32),
         idk: u32,
         name: &str,
-        player_id: PlayerId,
+        owner: PlayerId,
     ) -> Trigger {
         Trigger {
             version: Default::default(),
@@ -226,7 +224,7 @@ impl Trigger {
             pos: pos.into(),
             idk,
             name: name.into(),
-            player_id,
+            owner,
         }
     }
 }
