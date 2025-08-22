@@ -34,7 +34,7 @@ pub struct AiPlayer {
     pub ai_type: Optional<AiType>,
     #[brw(if(init.bool))]
     pub initialized_ai_player: Option<InitAiPlayer>,
-    #[brw(if(player.is_some_and(|p|p.init.bool)))]
+    #[brw(if(player.is_some()))]
     pub military_map: Option<MilitaryMap>,
 }
 

@@ -13,7 +13,7 @@ pub struct Player {
     id2: PlayerId,
     version: Version!(5, "PlayerObject"),
     #[brw(assert(init.bool))]
-    pub init: Bool,
+    init: Bool,
     name: Str,
     id: PlayerId,
     idk: u32,
@@ -29,7 +29,7 @@ pub struct Player {
     /// contains the current number the ship_names are on (the numbers are translated to names)
     ship_names: Versioned!("Player ShipNames", CapedU32<19>),
     idk4: u32,
-    seen: [(u32, u32); PlayerId::COUNT], //Seen by and Seen
+    seen: [(Bool, Bool); PlayerId::COUNT], //Seen by and Seen
     stock2: Stock,
 }
 

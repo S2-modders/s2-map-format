@@ -12,6 +12,10 @@ path = "src/main.rs"
 name = "uml"
 path = "src/uml_main.rs"
 
+[[bin]]
+name = "portal"
+path = "src/portal.rs"
+
 [profile.dev]
 incremental = true
 

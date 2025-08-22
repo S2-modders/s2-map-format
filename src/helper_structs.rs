@@ -211,7 +211,7 @@ where
 #[binrw]
 #[brw(repr = u32)]
 #[repr(u32)]
-#[derive(Debug, EnumCount, FromRepr, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, EnumCount, FromRepr, PartialEq, Eq, Clone, Copy, EnumIter)]
 pub enum PlayerId {
     P0 = 0,
     P1 = 1,
@@ -660,6 +660,16 @@ pub struct PatternCursor {
     pub x: u32,
     #[br(assert(y != u32::MAX))]
     pub y: u32,
+}
+
+impl From<ElevationCursor> for PatternCursor {
+    fn from(value: ElevationCursor) -> Self {
+        PatternCursor {
+            x: value.x >> 2,
+            y: value.y >> 2,
+            ..Default::default()
+        }
+    }
 }
 
 impl From<(u32, u32)> for PatternCursor {

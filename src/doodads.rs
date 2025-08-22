@@ -7,20 +7,20 @@ use binrw::binrw;
 #[derive(Debug)]
 pub struct Doodads {
     version: VersionI!("DoodadsSystem"),
-    pub map1: Array<Doodad>,
-    pub map2: Array<Doodad>,
-    pub map3: Array<Doodad>,
+    pub non_blocking: Array<Doodad>,
+    pub life_time: Array<Doodad>,
+    pub blocking: Array<Doodad>,
 }
 
 #[binrw]
 #[derive(Debug)]
 pub struct Doodad {
-    doodad_type: DoodadType,
+    pub doodad_type: DoodadType,
     version: Version!(1, "DoodadsObject"),
     id: Uuid,
-    pos: ElevationCursor,
+    pub pos: ElevationCursor,
     #[brw(if(doodad_type.has_lifetime()))]
-    lifetime: Option<u32>,
+    pub lifetime: Option<u32>,
 }
 
 impl Ided for Doodad {
@@ -75,7 +75,7 @@ pub enum DoodadType {
     Swamp2 = 0xfadebee3,
     Swamp3 = 0xfadebee4,
     Swamp4 = 0xfadebee5,
-    Gate0 = 0xfadebee6,
+    Gate0 = 0xfadebee6, //Portal
     Agave0 = 0x8fa67cf0,
     Agave1 = 0x8fa67cf1,
     Agave2 = 0x8fa67cf2,

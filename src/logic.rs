@@ -120,10 +120,12 @@ pub struct UuidGenerator {
     state: NonMaxU64,
 }
 
-impl UuidGenerator {
-    pub fn next_id(&mut self) -> Uuid {
-        let res = self.state.into();
-        self.state = NonMaxU64::new(self.state.get() + 1).unwrap(); //unwrap_or_default()
+impl Iterator for UuidGenerator {
+    type Item = Uuid;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let res = Some(self.state.into());
+        self.state = NonMaxU64::new(self.state.get() + 1)?;
         res
     }
 }
@@ -206,22 +208,22 @@ pub enum TriggerType {
 
 impl Trigger {
     pub fn new(
-        id_generator: &mut UuidGenerator,
+        id: Uuid,
         trigger_type: TriggerType,
-        pos: (u32, u32),
+        pos: PatternCursor,
         idk: u32,
         name: &str,
         owner: PlayerId,
     ) -> Trigger {
         Trigger {
             version: Default::default(),
-            id: id_generator.next_id(),
+            id,
             active: true.into(),
             time: Time {
                 duration: Duration::default(),
             },
             trigger_type,
-            pos: pos.into(),
+            pos,
             idk,
             name: name.into(),
             owner,
