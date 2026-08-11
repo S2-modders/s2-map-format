@@ -138,7 +138,7 @@ pub struct MapInfo {
     pub map_name: Str,
     pub dimensions: (u32, u32),
     pub player_types: [PlayerType; PlayerId::COUNT],
-    pub idk3: [(u32, PlayerId, i32, u32); PlayerId::COUNT],
+    pub scripted_map_players: [(PlayerNationality, PlayerColor, PlayerTeam, PlayerDifficulty); PlayerId::COUNT],
     pub mission_target_type: OptNone<MissionTarget>,
     pub idk4: u32,
     pub file_type: FileType,
@@ -155,6 +155,54 @@ pub enum PlayerType {
     None = 0,
     Ai = 1,
     Player = 2,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum PlayerNationality {
+    Romans = 0,
+    Nubians = 1,
+    Chinese = 2,
+    Vikings = 3,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum PlayerColor {
+    Blue = 0,
+    Red = 1,
+    Green = 2,
+    Yellow = 3,
+    White = 4,
+    Black = 5,
+    Pink = 6,
+    LightBlue = 7,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum PlayerTeam {
+    Disabled = 0xffffffff_u32,
+    Team1 = 0,
+    Team2 = 1,
+    Team3 = 2,
+    Team4 = 3,
+    Team5 = 4,
+    Team6 = 5,
+    Team7 = 6,
+    Team8 = 7,
+}
+
+#[binrw]
+#[brw(repr = u32)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum PlayerDifficulty {
+    Weak = 0,
+    Normal = 1,
+    Strong = 2,
 }
 
 #[binrw]
