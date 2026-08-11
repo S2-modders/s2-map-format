@@ -138,7 +138,10 @@ pub struct MapInfo {
     pub map_name: Str,
     pub dimensions: (u32, u32),
     pub player_types: [PlayerType; PlayerId::COUNT],
-    pub idk3: [(u32, PlayerId, i32, u32); PlayerId::COUNT],
+    //00 -> Romans, 01 -> Nubians, 02 -> Chinese, 03 -> Vikings
+    //00 -> Blue, 01 -> Red, 02 -> Green, 03 -> Yellow, 04 -> White, 05 -> Black, 06 -> Pink, 07 -> Light Blue
+    //00 -> private/human, 01 -> sergeant, 02 -> general
+    pub scripted_map_players: [(PlayerNationality, PlayerColour, PlayerTeam, PlayerDifficulty); PlayerId::COUNT],
     pub mission_target_type: OptNone<MissionTarget>,
     pub idk4: u32,
     pub file_type: FileType,
